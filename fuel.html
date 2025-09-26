@@ -4,55 +4,86 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LifeOS — Paliwo</title>
+  <link rel="stylesheet" href="assets/styles.css">
   <style>
-    :root{
-      --bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
-      --green:#059669;--red:#be123c;--orange:#ea580c;--blue:#0369a1
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto}
-    .wrap{max-width:900px;margin:0 auto;padding:24px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    .wrap{max-width:980px;margin:0 auto;padding:32px 20px 48px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
     .row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
     .muted{color:var(--muted)}
     .title{margin:0 0 8px 0;font-weight:700}
-    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:12px;padding:8px 12px;border:1px solid #0f172a;background:#0f172a;color:#fff;cursor:pointer; text-decoration: none;}
-    .btn.soft{background:#f1f5f9;border-color:#e2e8f0;color:#0f172a}
-    .btn.danger{background:#ffe4e6;border-color:#fecdd3;color:#b91c1c}
-    input,select{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;color:#0f172a;width:100%}
-    .grid{display:grid;gap:16px}
+    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:12px;padding:10px 16px;border:1px solid transparent;background:var(--accent);color:#fff;cursor:pointer;font-weight:600;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,background .2s ease}
+    .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+    .btn.soft{background:var(--surface);border-color:var(--line);color:var(--ink)}
+    .btn.danger{background:var(--red);border-color:transparent;color:#fff}
+    input,select{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--card);color:var(--ink);width:100%}
+    .grid{display:grid;gap:18px}
     .g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
     @media(max-width:900px){.g-2{grid-template-columns:1fr}}
     .g-4{grid-template-columns:repeat(4,minmax(0,1fr))}
     @media(max-width:900px){.g-4{grid-template-columns:1fr 1fr}}
     .ok{color:var(--green)}.bad{color:var(--red)}
-    .stat-card{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px; text-align: center;}
+    .stat-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;display:flex;flex-direction:column;gap:6px}
     .big-number{font-weight:800;font-size:32px}
     table{width:100%;border-collapse:collapse}
     th,td{padding:8px;border-top:1px solid var(--line);text-align:left;vertical-align:middle}
     .chart-box{height:240px; margin-top: 16px;}
+    .insights-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+    .insight-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}
+    .insight-card .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
+    .insight-card .value{font-size:22px;font-weight:700}
+    .insight-card .note{font-size:12px;color:var(--muted)}
+    .summary-delta{font-weight:600}
+    .summary-delta.up{color:var(--red)}
+    .summary-delta.down{color:var(--green)}
+    .summary-delta.flat{color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="row">
-      <div class="row" style="gap:10px">
-        <a href="./index.html" class="btn soft" style="text-decoration: none;">← Powrót</a>
-        <div>
-          <div style="font-weight:800">Moduł Paliwowy</div>
-          <div class="muted" style="font-size:12px">Rozliczenia z firmą</div>
-        </div>
+    <header class="page-header">
+      <div class="page-title-group">
+        <a href="index.html" class="back-link">← Powrót</a>
+        <h1 class="page-title">Moduł Paliwowy</h1>
+        <p class="page-subtitle">Rozliczenia z firmą i prywatne tankowania</p>
       </div>
-      <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
-    </div>
+      <div class="page-actions">
+        <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
+      </div>
+    </header>
 
     <div class="grid g-2" style="margin-top:16px;">
         <div class="stat-card">
-            <div class="muted">Aktualne Saldo</div>
+            <div class="muted">Aktualne saldo</div>
             <div id="fuel-balance" class="big-number">0,00 PLN</div>
             <div class="muted" id="balance-info"></div>
         </div>
         <div id="last-invoice-card" class="stat-card"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+        <h3 class="title">Kluczowe wnioski</h3>
+        <div id="insights-grid" class="insights-grid"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+        <div class="row" style="margin-bottom:12px;">
+            <h3 class="title" style="margin:0;">Podsumowanie miesięczne</h3>
+            <p class="tiny" id="monthly-summary-caption" style="margin:0;">Ostatnie 6 miesięcy</p>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Miesiąc</th>
+                        <th>Faktury</th>
+                        <th>Litry</th>
+                        <th>Śr. cena</th>
+                        <th>Zmiana m/m</th>
+                    </tr>
+                </thead>
+                <tbody id="monthly-summary-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="card" style="margin-top:16px;">
@@ -253,8 +284,143 @@ function render() {
         };
     });
 
-
+    renderInsightsSection();
+    renderMonthlySummary();
     renderAnalytics();
+}
+
+function renderInsightsSection() {
+    const grid = document.getElementById('insights-grid');
+    if (!grid) return;
+
+    if (!state.transactions.length) {
+        grid.innerHTML = '<p class="tiny muted">Dodaj pierwszą transakcję, aby zobaczyć kluczowe wskaźniki.</p>';
+        return;
+    }
+
+    const invoices = state.transactions.filter(tx => tx.type === 'invoice');
+    const advances = state.transactions.filter(tx => tx.type === 'advance');
+    const totalCost = invoices.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    const totalLiters = invoices.reduce((sum, tx) => sum + (tx.liters || 0), 0);
+    const avgPrice = totalLiters > 0 ? totalCost / totalLiters : 0;
+    const avgInvoice = invoices.length > 0 ? totalCost / invoices.length : 0;
+
+    const last30Threshold = new Date();
+    last30Threshold.setDate(last30Threshold.getDate() - 30);
+    const last30Invoices = invoices.filter(tx => tx.date && new Date(tx.date) >= last30Threshold);
+    const last30Cost = last30Invoices.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+
+    const bestPriceInvoice = invoices.reduce((best, tx) => {
+        if (!tx.liters) return best;
+        const unitPrice = Math.abs(tx.amount) / tx.liters;
+        if (!best || unitPrice < best.unitPrice) {
+            return { unitPrice, ref: tx.ref, date: tx.date };
+        }
+        return best;
+    }, null);
+
+    const worstPriceInvoice = invoices.reduce((worst, tx) => {
+        if (!tx.liters) return worst;
+        const unitPrice = Math.abs(tx.amount) / tx.liters;
+        if (!worst || unitPrice > worst.unitPrice) {
+            return { unitPrice, ref: tx.ref, date: tx.date };
+        }
+        return worst;
+    }, null);
+
+    const balance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
+    const advancesValue = advances.reduce((sum, tx) => sum + tx.amount, 0);
+
+    const cards = [
+        {
+            label: 'Średnia cena za litr',
+            value: totalLiters > 0 ? fmt(avgPrice, 'PLN/L') : '—',
+            note: totalLiters > 0 ? `${totalLiters.toFixed(1)} L w ${invoices.length} fakturach` : 'Brak danych o litrach'
+        },
+        {
+            label: 'Koszt ostatnich 30 dni',
+            value: last30Invoices.length ? fmt(last30Cost) : '—',
+            note: last30Invoices.length ? `${last30Invoices.length} tankowania` : 'Brak nowych faktur'
+        },
+        {
+            label: 'Najlepsza cena',
+            value: bestPriceInvoice ? fmt(bestPriceInvoice.unitPrice, 'PLN/L') : '—',
+            note: bestPriceInvoice ? `${bestPriceInvoice.ref || 'Faktura'} (${bestPriceInvoice.date})` : 'Brak danych o litrach'
+        },
+        {
+            label: 'Najwyższa cena',
+            value: worstPriceInvoice ? fmt(worstPriceInvoice.unitPrice, 'PLN/L') : '—',
+            note: worstPriceInvoice ? `${worstPriceInvoice.ref || 'Faktura'} (${worstPriceInvoice.date})` : 'Brak danych o litrach'
+        },
+        {
+            label: 'Śr. kwota faktury',
+            value: invoices.length ? fmt(avgInvoice) : '—',
+            note: advances.length ? `${advances.length} zaliczek na ${fmt(advancesValue)}` : 'Brak zaliczek'
+        },
+        {
+            label: 'Saldo rozliczeń',
+            value: fmt(balance),
+            note: balance >= 0 ? 'Firma jest Ci winna środki' : 'Do zwrotu dla firmy'
+        }
+    ];
+
+    grid.innerHTML = cards.map(card => `
+        <div class="insight-card">
+            <div class="label">${card.label}</div>
+            <div class="value">${card.value}</div>
+            <div class="note">${card.note}</div>
+        </div>
+    `).join('');
+}
+
+function renderMonthlySummary() {
+    const tbody = document.getElementById('monthly-summary-body');
+    const caption = document.getElementById('monthly-summary-caption');
+    if (!tbody) return;
+
+    const invoices = state.transactions.filter(tx => tx.type === 'invoice' && tx.date);
+    if (!invoices.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;">Brak danych do wyświetlenia.</td></tr>';
+        if (caption) caption.textContent = 'Brak danych miesięcznych';
+        return;
+    }
+
+    const monthly = {};
+    invoices.forEach(tx => {
+        const month = tx.date.slice(0, 7);
+        if (!monthly[month]) monthly[month] = { cost: 0, liters: 0, count: 0 };
+        monthly[month].cost += Math.abs(tx.amount);
+        monthly[month].liters += tx.liters || 0;
+        monthly[month].count += 1;
+    });
+
+    const months = Object.keys(monthly).sort();
+    const recentMonths = months.slice(-6);
+    if (caption) caption.textContent = recentMonths.length ? `Ostatnie ${recentMonths.length} miesięcy` : 'Brak danych miesięcznych';
+
+    tbody.innerHTML = recentMonths.map((month, index) => {
+        const data = monthly[month];
+        const avgPrice = data.liters > 0 ? data.cost / data.liters : 0;
+        const prevMonthKey = recentMonths[index - 1];
+        const prev = prevMonthKey ? monthly[prevMonthKey] : null;
+        let deltaCell = '—';
+        if (prev) {
+            const delta = data.cost - prev.cost;
+            const deltaClass = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+            const symbol = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
+            deltaCell = `<span class="summary-delta ${deltaClass}">${symbol} ${fmt(Math.abs(delta))}</span>`;
+        }
+        const label = new Date(`${month}-01`).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+        return `
+            <tr>
+                <td>${label}</td>
+                <td>${data.count}</td>
+                <td>${data.liters ? data.liters.toFixed(1) + ' L' : '—'}</td>
+                <td>${data.liters ? fmt(avgPrice, 'PLN/L') : '—'}</td>
+                <td>${deltaCell}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function startEdit(id) {

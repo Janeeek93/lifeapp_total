@@ -4,38 +4,39 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BuildMaster Pro — Centrum Zarządzania Budową</title>
+  <link rel="stylesheet" href="assets/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --primary: #3b82f6;
-      --primary-dark: #2563eb;
-      --primary-light: #dbeafe;
-      --primary-lighter: #eff6ff;
-      --success: #10b981;
-      --success-light: #d1fae5;
-      --error: #ef4444;
-      --error-light: #fee2e2;
-      --warning: #f59e0b;
-      --warning-light: #fef3c7;
-      --info: #6366f1;
-      --info-light: #e0e7ff;
-      --bg: #f8fafc;
-      --bg-secondary: #f1f5f9;
+      --primary: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+      --primary-dark: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 10%));
+      --primary-light: hsl(var(--accent-h) 82% 90%);
+      --primary-lighter: hsl(var(--accent-h) 88% 96%);
+      --success: var(--green);
+      --success-light: var(--green-soft);
+      --error: var(--red);
+      --error-light: var(--red-soft);
+      --warning: var(--orange);
+      --warning-light: var(--orange-soft);
+      --info: hsl(var(--accent-h) 70% 60%);
+      --info-light: hsl(var(--accent-h) 80% 92%);
+      --bg: var(--surface);
+      --bg-secondary: hsl(var(--accent-h) 70% 96%);
       --sidebar-bg: #0f172a;
-      --card-bg: #ffffff;
-      --text-primary: #0f172a;
-      --text-secondary: #64748b;
-      --text-tertiary: #94a3b8;
-      --border: #e2e8f0;
-      --border-light: #f1f5f9;
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      --card-bg: var(--card);
+      --text-primary: var(--ink);
+      --text-secondary: var(--muted);
+      --text-tertiary: hsl(var(--accent-h) 20% 65%);
+      --border: var(--line);
+      --border-light: hsl(var(--accent-h) 55% 90%);
+      --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(15 23 42 / 0.1), 0 1px 2px -1px rgb(15 23 42 / 0.08);
+      --shadow-md: 0 4px 10px -2px rgb(15 23 42 / 0.12);
+      --shadow-lg: 0 18px 35px -10px rgb(15 23 42 / 0.18);
+      --shadow-xl: 0 30px 60px -24px rgb(15 23 42 / 0.22);
       --radius: 12px;
       --radius-sm: 8px;
       --radius-lg: 16px;
@@ -44,9 +45,9 @@
     }
 
     [data-theme="dark"] {
-      --primary: #60a5fa;
-      --primary-dark: #3b82f6;
-      --primary-light: #1e3a8a;
+      --primary: hsl(var(--accent-h) 75% 70%);
+      --primary-dark: hsl(var(--accent-h) 70% 62%);
+      --primary-light: hsl(var(--accent-h) 60% 45%);
       --primary-lighter: #1e293b;
       --bg: #0f172a;
       --bg-secondary: #1e293b;
@@ -265,6 +266,10 @@
       display: flex;
       align-items: center;
       gap: 24px;
+    }
+
+    .topbar-left .back-link {
+      font-size: 13px;
     }
     
     .page-title {
@@ -1991,6 +1996,7 @@
     <header class="topbar">
       <div class="topbar-left">
         <button class="btn btn-ghost btn-icon mobile-only" id="menu-toggle">☰</button>
+        <a href="index.html" class="back-link desktop-only">← Powrót</a>
         <div class="page-title" id="page-title">
           <span id="page-icon">📊</span>
           <span id="page-name">Panel Główny</span>
@@ -2336,6 +2342,22 @@
   <script>
     // App State
     const APP_KEY = 'buildmaster_pro_v11';
+    const safeParse = (raw, fallbackFactory) => {
+      const fallback = () => (typeof fallbackFactory === 'function' ? fallbackFactory() : fallbackFactory);
+      if (!raw) return fallback();
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : fallback();
+      } catch {
+        return fallback();
+      }
+    };
+    const deepClone = (value) => {
+      if (typeof structuredClone === 'function') {
+        try { return structuredClone(value); } catch (error) { /* ignore */ }
+      }
+      return JSON.parse(JSON.stringify(value));
+    };
     let state = {};
     const defaultState = {
       theme: 'light',
@@ -2414,17 +2436,14 @@
 
     // State Management
     function loadState() {
-      const saved = localStorage.getItem(APP_KEY);
-      if (saved) {
-        state = JSON.parse(saved);
-        // Ensure all keys from default state exist
-        for (const key in defaultState) {
-          if (typeof state[key] === 'undefined') {
-            state[key] = defaultState[key];
+      const savedState = safeParse(localStorage.getItem(APP_KEY), () => null);
+      state = deepClone(defaultState);
+      if (savedState && typeof savedState === 'object') {
+        for (const key of Object.keys(savedState)) {
+          if (typeof savedState[key] !== 'undefined') {
+            state[key] = savedState[key];
           }
         }
-      } else {
-        state = JSON.parse(JSON.stringify(defaultState));
       }
     }
 

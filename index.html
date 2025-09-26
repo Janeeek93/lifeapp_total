@@ -7,81 +7,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
   <style>
-    /* === THEME TOKENS === */
-    :root, [data-theme="light"]{
-      --accent-h: 222; --accent-s: 83%; --accent-l: 53%;
-      --accent: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
-      --accent-weak: hsl(var(--accent-h) 60% 94%);
-      --bg:#f6f7fb; --card:#ffffff; --ink:#0f172a; --muted:#667085; --line:#e7eaf0;
-      --surface:#f9fafb;
-      --green:#059669;--red:#dc2626;--orange:#ea580c;--blue:#2563eb;--purple:#7c3aed;--yellow:#eab308;
-      --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow:0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-      --shadow-md:0 6px 16px -6px rgb(0 0 0 / 0.12);
-      --shadow-lg:0 18px 40px -15px rgb(0 0 0 / 0.18);
+    :root {
       --gradient-primary: radial-gradient(1200px 400px at 20% -10%, hsl(var(--accent-h) 80% 92%) 0%, transparent 55%),
                           radial-gradient(1000px 500px at 80% -20%, hsl(280 70% 95%) 0%, transparent 50%);
-      --scrollbar-thumb: hsl(var(--accent-h) 30% 75%);
-      --scrollbar-track: transparent;
       --ring: 2px solid hsl(var(--accent-h) var(--accent-s) 60%);
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0; background: var(--bg); color: var(--ink);
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto;
-      font-size: 12px; line-height: 1.5; overflow-x: hidden;
-    }
+    .grid { gap: 18px; }
+    .g-main { grid-template-columns: 2fr 1fr; align-items: start; }
+    .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .modules-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .card { animation: fadeInUp .4s ease-out; }
 
-    /* === Motion preferences === */
-    @media (prefers-reduced-motion: reduce){
-      * { animation: none !important; transition: none !important }
-    }
-
-    /* === Animations === */
-    @keyframes fadeInUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
     @keyframes slideInRight { from{opacity:0; transform:translateX(12px)} to{opacity:1; transform:translateX(0)} }
 
-    /* === Layout === */
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px; }
-    .grid { display: grid; gap: 14px; }
-    .g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .g-main { grid-template-columns: 2fr 1fr; align-items: start; }
-    .modules-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-
-    @media(max-width:1200px){ .kpi-grid { grid-template-columns: repeat(2,1fr) } }
-    @media(max-width:900px){ .g-main{ grid-template-columns: 1fr } }
-    @media(max-width:700px){ .g-2{ grid-template-columns: 1fr } }
-
-    /* === Cards & elements === */
-    .card{
-      background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
-      box-shadow: var(--shadow); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-      animation: fadeInUp .4s ease-out;
-    }
-    .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: hsl(var(--accent-h) 30% 80% / .5) }
-
-    .title { margin: 0 0 10px 0; font-weight: 700; font-size: 15px; letter-spacing: .2px; }
-    .muted { color: var(--muted); }
-    .tiny { font-size: 10px }
-
-    .pill{
-      display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px;
-      background: var(--accent-weak); color: hsl(var(--accent-h) 25% 30%); font-size:10px; font-weight:600;
-      border: 1px solid hsl(var(--accent-h) 40% 82% / .7);
-    }
-
-    .btn{
-      display:inline-flex; gap:8px; align-items:center; justify-content:center;
-      border-radius: 12px; padding: 10px 16px; border: 1px solid var(--line);
-      background: var(--surface); color: var(--ink); cursor:pointer; text-decoration:none; font-weight:600;
-      transition: transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color:hsl(var(--accent-h) 30% 75% / .6) }
-    .btn.primary{ background: var(--accent); color:#fff; border-color: transparent }
-    .btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px hsl(var(--accent-h) 90% 60% / .35) }
+    @media(max-width:1200px){ .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media(max-width:900px){ .g-main{ grid-template-columns: 1fr; } }
 
     .tile{
       cursor:pointer; display:flex; flex-direction:column; gap:10px; border-radius:16px; border:1px solid var(--line);
@@ -94,9 +37,6 @@
     }
     .tile:hover{ transform: translateY(-3px); box-shadow: var(--shadow-md); border-color:hsl(var(--accent-h) 30% 70%) }
     .tile:hover::before{ transform: scaleX(1) }
-    
-    .progress{ height:8px; background:#e2e8f0; border-radius: 999px; overflow:hidden; margin-top:8px; position:relative }
-    .progress > i{ display:block; height:100%; background: var(--accent); border-radius:inherit; transition: width 1s ease-out }
 
     /* === New KPI Tiles === */
     .kpi-tile-large {
@@ -119,10 +59,9 @@
     .value-warn { color: var(--orange); }
     .value-bad { color: var(--red); }
 
-
     /* === Hero === */
     .hero-header{
-      margin:-28px -20px 24px -20px; padding: 24px 20px; color: var(--ink); position:relative; overflow:hidden;
+      margin:-32px -20px 24px -20px; padding: 28px 20px; color: var(--ink); position:relative; overflow:hidden;
       background: var(--gradient-primary);
       border-bottom: 1px solid var(--line);
     }
@@ -134,9 +73,7 @@
     .date-text{ opacity:.9; font-size: 13px; margin:0 0 10px 0; animation: fadeInUp .5s ease-out .1s both }
     .dynamic-message{ font-style: italic; opacity:.85; font-size:12px; animation: fadeInUp .5s ease-out .2s both }
 
-    .quick-actions{
-      position:absolute; top:16px; right:16px; display:flex; gap:10px; animation: slideInRight .5s ease-out .2s both;
-    }
+    .quick-actions{ position:absolute; top:20px; right:20px; display:flex; gap:10px; animation: slideInRight .5s ease-out .2s both; }
     .quick-action{
       width:42px; height:42px; background: hsl(0 0% 100% / .6);
       border:1px solid hsl(0 0% 100% / .7); border-radius:10px; display:flex; align-items:center; justify-content:center;
@@ -146,25 +83,15 @@
 
     /* === Lists & feeds === */
     .activity-feed{ max-height: 300px; overflow-y:auto; padding-right:6px }
-    .activity-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); animation: fadeInUp .35s ease-out }
+    .activity-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); animation:fadeInUp .35s ease-out }
     .activity-item:last-child{ border-bottom:none }
 
     /* === Upcoming tasks === */
-    .priorities-card{
-        display:flex; flex-direction:column; border:none; background: var(--card);
-        flex-grow: 1;
-    }
+    .priorities-card{ display:flex; flex-direction:column; background: var(--card); flex-grow: 1; }
     .upcoming-header{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px }
-    #upcoming-tasks-list{
-        overflow:auto; padding-right:6px; flex-grow: 1;
-    }
-    #upcoming-tasks-list::-webkit-scrollbar, .activity-feed::-webkit-scrollbar{ width: 10px }
-    #upcoming-tasks-list::-webkit-scrollbar-thumb, .activity-feed::-webkit-scrollbar-thumb{
-      background: var(--scrollbar-thumb); border-radius: 8px; border: 2px solid transparent; background-clip: content-box;
-    }
-    #upcoming-tasks-list{ scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track) }
+    #upcoming-tasks-list{ overflow:auto; padding-right:6px; flex-grow: 1; }
     .task-group-header {
-      font-size: 9px; text-transform: uppercase; color: var(--muted); margin: 16px 0 4px 4px; font-weight: 600; letter-spacing: 0.5px;
+      font-size: 9px; text-transform: uppercase; color: var(--muted); margin: 16px 0 4px 4px; font-weight: 600; letter-spacing:0.5px;
     }
     .task-group-header:first-of-type { margin-top: 0; }
     .upcoming-task-item{
@@ -224,11 +151,9 @@
     }
     @keyframes spin{ to{ transform: translate(-50%,-50%) rotate(360deg) } }
 
-    /* === Responsive === */
     @media (max-width: 768px){
-      .hero-header{ padding: 22px; margin:-28px -20px 18px -20px }
+      .hero-header{ padding: 24px; margin:-28px -20px 20px -20px }
       .quick-actions{ position: static; margin-top: 12px; justify-content: center }
-      .wrap{ padding: 16px }
     }
   </style>
 </head>
@@ -357,6 +282,10 @@ function fmt(n, c = 'PLN') {
     return `${parts.join(',')}\u00A0${c}`;
   } catch { return `${Number(n || 0).toFixed(2)}\u00A0${c}`; }
 }
+function safeParse(raw, fallback = null){
+  if(!raw) return fallback;
+  try { return JSON.parse(raw); } catch { return fallback; }
+}
 function num(s) {
   if(typeof s === 'number') return s;
   if(!s) return 0;
@@ -411,12 +340,12 @@ function renderGreetingAndDate(){
 function renderUpcomingTasks(){
   const listEl = document.getElementById('upcoming-tasks-list');
   const tasksRaw = localStorage.getItem(TASKS_STORAGE_KEY);
-  if(!tasksRaw){
+  const tasksState = safeParse(tasksRaw, { tasks: [] });
+  if(!tasksState || !Array.isArray(tasksState.tasks) || tasksState.tasks.length === 0){
     listEl.innerHTML = `<div class="tiny muted" style="padding: 14px;">Brak zadań.</div>`;
     document.getElementById('priorities-summary').textContent = 'Brak zadań';
     return;
   }
-  const tasksState = JSON.parse(tasksRaw);
   const today = new Date(); today.setUTCHours(0,0,0,0);
   
   const overdue = tasksState.tasks.filter(t => t.status !== 'done' && t.dueDate && parseDate(t.dueDate) < today).sort((a,b) => parseDate(a.dueDate)-parseDate(b.dueDate));
@@ -469,7 +398,8 @@ function renderWeeklyActivities(){
   const GOALS = { gym:{name:'Siłownia',icon:'🏋️',target:3,unit:'razy'}, running:{name:'Bieganie',icon:'🏃',target:5,unit:'km'}, reading:{name:'Czytanie',icon:'📚',target:100,unit:'stron'} };
   const [y,w] = getWeekNumber(new Date());
   let progressData = {};
-  if(trainingsRaw){ const st = JSON.parse(trainingsRaw); progressData = st[y]?.[w]?.progress || {} }
+  const st = safeParse(trainingsRaw, {});
+  if(st && st[y] && st[y][w]){ progressData = st[y][w].progress || {}; }
   listEl.innerHTML = Object.entries(GOALS).map(([k,g],i)=>{
     const current = progressData[k] || 0;
     const pct = Math.min(100, current/g.target*100);
@@ -486,7 +416,7 @@ function renderWeeklyActivities(){
 /* === WEATHER (From Settings) === */
 function renderWeatherWidget() {
   const widget = document.getElementById('weather-widget');
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || '{}');
+  const settings = safeParse(localStorage.getItem(SETTINGS_STORAGE_KEY), {}) || {};
   const locationQuery = settings.weatherLocation || 'Warszawa';
 
   widget.innerHTML = `<div class="muted" style="padding: 20px; text-align: center; font-size: 13px;">Ładowanie pogody dla: ${locationQuery}...</div>`;
@@ -579,7 +509,8 @@ function renderKPIData(){
   // --- Budget KPI ---
   const budgetRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
   if(budgetRaw){
-    const bState = JSON.parse(budgetRaw).modules.budget;
+    const parsedBudget = safeParse(budgetRaw, null);
+    const bState = parsedBudget?.modules?.budget || parsedBudget?.budget || parsedBudget;
     const ym = monthKey();
     let budgetHTML = `
       <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
@@ -587,18 +518,21 @@ function renderKPIData(){
       <div class="kpi-details">Brak danych na ten miesiąc.</div>
       <div class="kpi-progress-container"></div>`;
 
-    if(bState.monthly && bState.monthly[ym]){
+    if(bState && bState.monthly && bState.monthly[ym]){
       const m = bState.monthly[ym];
-      const incSum = m.incomes.reduce((s,x)=> s+num(x.amount),0);
-      const fixSum = m.fixed.reduce((s,x)=> s+num(x.amount),0);
+      const incomes = Array.isArray(m.incomes) ? m.incomes : [];
+      const fixed = Array.isArray(m.fixed) ? m.fixed : [];
+      const incSum = incomes.reduce((s,x)=> s+num(x.amount),0);
+      const fixSum = fixed.reduce((s,x)=> s+num(x.amount),0);
       const daysInMonth = new Date(ym.split('-')[0], ym.split('-')[1], 0).getDate();
       const currentDay = new Date().getDate();
-      
+
       const dailyBudget = Math.max(0, (incSum - fixSum)/daysInMonth);
       const budgetForToday = dailyBudget * currentDay;
 
-      const catsById = Object.fromEntries((bState.categories||[]).map(c=>[c.id,c]));
-      const spentUntilToday = (bState.transactions||[]).filter(t=> String(t.date||'').startsWith(ym) && new Date(t.date).getDate()<=currentDay).reduce((sum,t)=>{
+      const catsById = Object.fromEntries((Array.isArray(bState?.categories)?bState.categories:[]).map(c=>[c.id,c]));
+      const txs = Array.isArray(bState?.transactions) ? bState.transactions : [];
+      const spentUntilToday = txs.filter(t=> String(t.date||'').startsWith(ym) && new Date(t.date).getDate()<=currentDay).reduce((sum,t)=>{
         if(t.splits?.length){ return sum + t.splits.reduce((ss,sp)=>{ const cat=catsById[sp.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving') && cat.id!=='c_fixed') ? ss+Math.abs(num(sp.amount)) : ss },0) }
         const cat=catsById[t.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving') && cat.id!=='c_fixed') ? sum+Math.abs(num(t.amount)) : sum
       },0);
@@ -606,7 +540,7 @@ function renderKPIData(){
       const buffer = budgetForToday - spentUntilToday;
       const bufferClass = buffer > budgetForToday * 0.2 ? 'value-ok' : buffer >= 0 ? 'value-warn' : 'value-bad';
 
-      const totalSpentMonth = (bState.transactions||[]).filter(t=> String(t.date||'').startsWith(ym)).reduce((sum,t)=>{
+      const totalSpentMonth = txs.filter(t=> String(t.date||'').startsWith(ym)).reduce((sum,t)=>{
         if(t.splits?.length){ return sum + t.splits.reduce((ss,sp)=>{ const cat=catsById[sp.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving')) ? ss+Math.abs(num(sp.amount)) : ss },0) }
         const cat=catsById[t.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving')) ? sum+Math.abs(num(t.amount)) : sum
       },0);
@@ -634,11 +568,12 @@ function renderKPIData(){
   // --- Fuel KPI ---
   const fuelRaw = localStorage.getItem(FUEL_STORAGE_KEY);
   if(fuelRaw){
-    const f = JSON.parse(fuelRaw);
-    const bal = f.transactions.reduce((a,tx)=> a+num(tx.amount),0);
+    const f = safeParse(fuelRaw, { transactions: [] });
+    const transactions = Array.isArray(f?.transactions) ? f.transactions : [];
+    const bal = transactions.reduce((a,tx)=> a+num(tx.amount||tx.value),0);
     const balanceClass = bal >= 0 ? 'value-ok' : 'value-bad';
-    
-    const last = f.transactions.filter(tx=> tx.type==='invoice').sort((a,b)=> b.date.localeCompare(a.date))[0];
+
+    const last = transactions.filter(tx=> tx.type==='invoice' && tx.date).sort((a,b)=> b.date.localeCompare(a.date))[0];
     let detailsHTML = 'Brak zarejestrowanych tankowań.';
     if(last){
       const days = Math.floor((new Date() - new Date(last.date))/86400000);
@@ -658,9 +593,9 @@ function renderKPIData(){
   // --- Tasks KPI ---
   const tasksRaw = localStorage.getItem(TASKS_STORAGE_KEY);
   if(tasksRaw){
-    const t = JSON.parse(tasksRaw);
+    const t = safeParse(tasksRaw, { tasks: [] });
     const today = new Date(); today.setUTCHours(0,0,0,0);
-    const activeTasks = t.tasks.filter(x=> x.status!=='done');
+    const activeTasks = Array.isArray(t?.tasks) ? t.tasks.filter(x=> x.status!=='done') : [];
     const overdue = activeTasks.filter(x => x.dueDate && parseDate(x.dueDate) < today).length;
     const forToday = activeTasks.filter(x => x.dueDate && parseDate(x.dueDate).getTime() === today.getTime()).length;
     const activeCount = activeTasks.length;
@@ -692,7 +627,7 @@ function renderKPIData(){
   // --- Progress KPI ---
   const trRaw = localStorage.getItem(TRAININGS_STORAGE_KEY);
   if(trRaw){
-    const st = JSON.parse(trRaw);
+    const st = safeParse(trRaw, {});
     const [y,w] = getWeekNumber(new Date());
     const yData = st[y] || {};
     const wd = yData[w];
@@ -725,12 +660,13 @@ function renderKPIData(){
   // --- House KPI ---
   const houseRaw = localStorage.getItem(HOUSE_STORAGE_KEY);
   if(houseRaw){
-    const hState = JSON.parse(houseRaw);
-    const { tasks, expenses, project } = hState;
-    const completedTasksProgress = tasks.map(t => (t.progress || 0));
+    const hState = safeParse(houseRaw, {});
+    const tasks = Array.isArray(hState?.tasks) ? hState.tasks : [];
+    const expenses = Array.isArray(hState?.expenses) ? hState.expenses : [];
+    const completedTasksProgress = tasks.map(t => Number(t.progress || 0));
     const totalProgress = tasks.length > 0 ? completedTasksProgress.reduce((a,b) => a + b, 0) / tasks.length : 0;
-    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-      
+    const totalExpenses = expenses.reduce((sum, e) => sum + num(e.amount), 0);
+
     kpiElements.house.innerHTML = `
       <div class="kpi-header"><span>🏗️</span><h4>Budowa</h4></div>
       <div class="kpi-main-value">${fmt(totalExpenses)}</div>
@@ -750,9 +686,10 @@ function renderKPIData(){
   // --- Loan KPI ---
   const loanRaw = localStorage.getItem(LOAN_STORAGE_KEY);
   if(loanRaw){
-    const lState = JSON.parse(loanRaw);
-    if (lState.loanDetails) {
-      const { loanDetails, payments } = lState;
+    const lState = safeParse(loanRaw, {});
+    if (lState && lState.loanDetails) {
+      const loanDetails = lState.loanDetails;
+      const payments = Array.isArray(lState.payments) ? lState.payments : [];
       const totalOverpayments = payments.reduce((sum, p) => sum + (p.overpayment || 0), 0);
       const totalCapitalPaid = payments.reduce((sum, p) => sum + p.capital, 0) + totalOverpayments;
       const capitalRemaining = loanDetails.totalCapital - totalCapitalPaid;
