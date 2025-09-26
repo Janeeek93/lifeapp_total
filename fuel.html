@@ -6,152 +6,205 @@
   <title>LifeOS — Paliwo</title>
   <link rel="stylesheet" href="assets/styles.css">
   <style>
-    .wrap{max-width:980px;margin:0 auto;padding:32px 20px 48px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
-    .row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
-    .muted{color:var(--muted)}
-    .title{margin:0 0 8px 0;font-weight:700}
-    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:12px;padding:10px 16px;border:1px solid transparent;background:var(--accent);color:#fff;cursor:pointer;font-weight:600;text-decoration:none;transition:transform .18s ease,box-shadow .18s ease,background .2s ease}
-    .btn:hover{transform:translateY(-1px);box-shadow:var(--shadow-sm)}
-    .btn.soft{background:var(--surface);border-color:var(--line);color:var(--ink)}
-    .btn.danger{background:var(--red);border-color:transparent;color:#fff}
-    input,select{border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--card);color:var(--ink);width:100%}
-    .grid{display:grid;gap:18px}
-    .g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    @media(max-width:900px){.g-2{grid-template-columns:1fr}}
-    .g-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media(max-width:900px){.g-4{grid-template-columns:1fr 1fr}}
-    .ok{color:var(--green)}.bad{color:var(--red)}
-    .stat-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;text-align:center;display:flex;flex-direction:column;gap:6px}
-    .big-number{font-weight:800;font-size:32px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-top:1px solid var(--line);text-align:left;vertical-align:middle}
-    .chart-box{height:240px; margin-top: 16px;}
-    .insights-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-    .insight-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}
-    .insight-card .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em}
-    .insight-card .value{font-size:22px;font-weight:700}
-    .insight-card .note{font-size:12px;color:var(--muted)}
-    .summary-delta{font-weight:600}
-    .summary-delta.up{color:var(--red)}
-    .summary-delta.down{color:var(--green)}
-    .summary-delta.flat{color:var(--muted)}
+    .fuel-insights-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .insight-card .label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    .insight-card .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .insight-card .note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .fuel-form-grid {
+      align-items: flex-end;
+    }
+
+    .fuel-form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .fuel-analytics-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .summary-delta {
+      font-weight: 600;
+    }
+
+    .summary-delta.up {
+      color: var(--red);
+    }
+
+    .summary-delta.down {
+      color: var(--green);
+    }
+
+    .summary-delta.flat {
+      color: var(--muted);
+    }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <header class="page-header">
-      <div class="page-title-group">
-        <a href="index.html" class="back-link">← Powrót</a>
-        <h1 class="page-title">Moduł Paliwowy</h1>
-        <p class="page-subtitle">Rozliczenia z firmą i prywatne tankowania</p>
-      </div>
-      <div class="page-actions">
-        <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
-      </div>
-    </header>
-
-    <div class="grid g-2" style="margin-top:16px;">
-        <div class="stat-card">
-            <div class="muted">Aktualne saldo</div>
-            <div id="fuel-balance" class="big-number">0,00 PLN</div>
-            <div class="muted" id="balance-info"></div>
+<body class="module-shell">
+  <section class="module-hero">
+    <div class="wrap module-hero-inner">
+      <div class="module-hero-top">
+        <div>
+          <a href="index.html" class="back-link">← Powrót</a>
+          <div class="module-eyebrow">Finanse</div>
+          <h1 class="module-title">Moduł paliwowy</h1>
+          <p class="module-subtitle">Rozliczaj wydatki służbowe i prywatne tankowania w jednym miejscu.</p>
         </div>
-        <div id="last-invoice-card" class="stat-card"></div>
+        <div class="module-hero-actions">
+          <button id="import-csv-btn" class="btn soft">Importuj z CSV</button>
+          <input type="file" id="csv-file-input" accept=".csv" style="display:none;">
+          <button id="export-csv-btn" class="btn soft">Eksportuj do CSV</button>
+          <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
+        </div>
+      </div>
+      <div class="module-hero-stats">
+        <div class="module-hero-stat">
+          <div class="label">Aktualne saldo</div>
+          <div class="value ok" id="fuel-balance">0,00 PLN</div>
+          <div class="note muted" id="balance-info">—</div>
+        </div>
+        <div class="module-hero-stat" id="last-invoice-card">
+          <div class="muted">Brak faktur w historii</div>
+        </div>
+      </div>
     </div>
+  </section>
 
-    <div class="card" style="margin-top:16px;">
-        <h3 class="title">Kluczowe wnioski</h3>
-        <div id="insights-grid" class="insights-grid"></div>
-    </div>
+  <main class="module-content">
+    <div class="wrap">
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Kluczowe wnioski</h2>
+          <span class="tiny muted">Aktualizowane automatycznie na podstawie historii tankowań</span>
+        </div>
+        <div id="insights-grid" class="fuel-insights-grid"></div>
+      </section>
 
-    <div class="card" style="margin-top:16px;">
-        <div class="row" style="margin-bottom:12px;">
-            <h3 class="title" style="margin:0;">Podsumowanie miesięczne</h3>
-            <p class="tiny" id="monthly-summary-caption" style="margin:0;">Ostatnie 6 miesięcy</p>
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Podsumowanie miesięczne</h2>
+          <p class="tiny muted" id="monthly-summary-caption">Ostatnie 6 miesięcy</p>
         </div>
         <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Miesiąc</th>
-                        <th>Faktury</th>
-                        <th>Litry</th>
-                        <th>Śr. cena</th>
-                        <th>Zmiana m/m</th>
-                    </tr>
-                </thead>
-                <tbody id="monthly-summary-body"></tbody>
-            </table>
+          <table>
+            <thead>
+              <tr>
+                <th>Miesiąc</th>
+                <th>Faktury</th>
+                <th>Litry</th>
+                <th>Śr. cena</th>
+                <th>Zmiana m/m</th>
+              </tr>
+            </thead>
+            <tbody id="monthly-summary-body"></tbody>
+          </table>
         </div>
-    </div>
+      </section>
 
-    <div class="card" style="margin-top:16px;">
-        <h3 class="title" id="form-title">Dodaj Transakcję</h3>
-        <div class="grid g-4">
-            <input type="hidden" id="tx-id">
-            <input type="date" id="tx-date">
-            <select id="tx-type">
-                <option value="invoice">Faktura (koszt)</option>
-                <option value="advance">Zaliczka (wpływ)</option>
-            </select>
-            <input type="text" id="tx-ref" placeholder="Nr faktury / Opis">
-            <input type="text" id="tx-liters" placeholder="Litry (opcjonalnie)" inputmode="decimal">
-            <input type="text" id="tx-amount" placeholder="Kwota" inputmode="decimal" required>
-            <div style="grid-column: 1 / -1; display:flex; gap: 8px; justify-content:flex-end;">
-              <button id="cancel-edit-btn" class="btn soft" style="display:none;">Anuluj</button>
-              <button id="add-tx-btn" class="btn">Dodaj</button>
-            </div>
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title" id="form-title">Dodaj transakcję</h2>
+          <span class="tiny muted">Obsługujemy faktury i zaliczki firmowe</span>
         </div>
-    </div>
-    
-    <div class="card" style="margin-top:16px;">
-        <div class="row">
-          <h3 class="title">Analityka</h3>
+        <div class="grid g-4 fuel-form-grid">
+          <input type="hidden" id="tx-id">
+          <input type="date" id="tx-date">
+          <select id="tx-type">
+            <option value="invoice">Faktura (koszt)</option>
+            <option value="advance">Zaliczka (wpływ)</option>
+          </select>
+          <input type="text" id="tx-ref" placeholder="Nr faktury / Opis">
+          <input type="text" id="tx-liters" placeholder="Litry (opcjonalnie)" inputmode="decimal">
+          <input type="text" id="tx-amount" placeholder="Kwota" inputmode="decimal" required>
+          <div class="fuel-form-actions">
+            <button id="cancel-edit-btn" class="btn soft" style="display:none;">Anuluj</button>
+            <button id="add-tx-btn" class="btn primary">Dodaj</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Analityka</h2>
           <select id="analytics-period-filter" style="width:auto;">
-              <option value="12" selected>Ostatni rok</option>
-              <option value="24">Ostatnie 2 lata</option>
-              <option value="36">Ostatnie 3 lata</option>
-              <option value="all">Wszystkie dane</option>
+            <option value="12" selected>Ostatni rok</option>
+            <option value="24">Ostatnie 2 lata</option>
+            <option value="36">Ostatnie 3 lata</option>
+            <option value="all">Wszystkie dane</option>
           </select>
         </div>
-        <div class="grid" style="margin-top:12px;">
-            <div class="card">
-                <div class="title">Miesięczne Koszty i Liczba Tankowań</div>
-                <div class="chart-box"><canvas id="monthly-costs-chart"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="title">Średnia Cena za Litr</div>
-                <div class="chart-box"><canvas id="avg-price-chart"></canvas></div>
-            </div>
+        <div class="fuel-analytics-grid">
+          <article class="chart-card">
+            <h3 class="title">Miesięczne koszty i liczba tankowań</h3>
+            <div class="chart-area"><canvas id="monthly-costs-chart"></canvas></div>
+          </article>
+          <article class="chart-card">
+            <h3 class="title">Średnia cena za litr</h3>
+            <div class="chart-area"><canvas id="avg-price-chart"></canvas></div>
+          </article>
         </div>
-    </div>
+      </section>
 
-    <div class="card" style="margin-top:16px;">
-        <div class="row">
-            <h3 class="title">Historia Transakcji</h3>
-            <div style="display:flex; gap: 8px;">
-                <button id="import-csv-btn" class="btn soft">Importuj z CSV</button>
-                <input type="file" id="csv-file-input" accept=".csv" style="display:none;">
-                <button id="export-csv-btn" class="btn soft">Eksportuj do CSV</button>
-            </div>
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Historia transakcji</h2>
+          <span class="tiny muted">Kliknij wpis, aby edytować lub usuń w przypadku pomyłki</span>
         </div>
-        <table>
+        <div class="table-wrapper">
+          <table>
             <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Typ</th>
-                    <th>Opis/Nr faktury</th>
-                    <th>Litry</th>
-                    <th>Cena/l</th>
-                    <th>Kwota</th>
-                    <th></th>
-                </tr>
+              <tr>
+                <th>Data</th>
+                <th>Typ</th>
+                <th>Opis/Nr faktury</th>
+                <th>Litry</th>
+                <th>Cena/l</th>
+                <th>Kwota</th>
+                <th></th>
+              </tr>
             </thead>
             <tbody id="history-tbody"></tbody>
-        </table>
+          </table>
+        </div>
+      </section>
     </div>
-  </div>
+  </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -261,7 +314,7 @@ function render() {
     // Render Balance and Last Invoice
     const totalBalance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
     balanceEl.textContent = fmt(totalBalance);
-    balanceEl.className = `big-number ${totalBalance >= 0 ? 'ok' : 'bad'}`;
+    balanceEl.className = `value ${totalBalance >= 0 ? 'ok' : 'bad'}`;
     balanceInfoEl.textContent = totalBalance >= 0 ? 'Firma jest Ci winna pieniądze' : 'Musisz zwrócić pieniądze firmie';
     
     const lastInvoice = state.transactions.find(tx => tx.type === 'invoice' && tx.date);
@@ -270,12 +323,12 @@ function render() {
         const litersValue = typeof lastInvoice.liters === 'number' ? lastInvoice.liters : num(lastInvoice.liters);
         const pricePerLiter = litersValue ? Math.abs(lastInvoice.amount) / litersValue : 0;
         lastInvoiceCard.innerHTML = `
-            <div class="muted">Ostatnia faktura (${daysSince} dni temu)</div>
-            <div style="font-size:18px; font-weight: 600;">${lastInvoice.date}</div>
-            <div class="muted">${fmt(Math.abs(lastInvoice.amount))} • ${litersValue ? litersValue.toFixed(2) + ' L' : '—'} • ${litersValue ? fmt(pricePerLiter, 'PLN/L') : '—'}</div>
+            <div class="label">Ostatnia faktura • ${daysSince} dni temu</div>
+            <div class="value">${fmt(Math.abs(lastInvoice.amount))}</div>
+            <div class="note">${lastInvoice.date} • ${litersValue ? litersValue.toFixed(2) + ' L' : '—'} • ${litersValue ? fmt(pricePerLiter, 'PLN/L') : '—'}</div>
         `;
     } else {
-        lastInvoiceCard.innerHTML = `<div class="muted">Brak faktur w historii</div>`;
+        lastInvoiceCard.innerHTML = `<div class="label">Brak faktur w historii</div>`;
     }
 
     // Render History Table
