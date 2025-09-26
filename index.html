@@ -53,7 +53,9 @@
     }
     .kpi-header { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
     .kpi-main-value { font-size: 24px; font-weight: 800; line-height: 1.1; }
-    .kpi-details { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .kpi-details { display:flex; flex-direction:column; gap:4px; font-size: 11px; color: var(--muted); line-height: 1.45; }
+    .kpi-detail-line { position: relative; padding-left: 12px; }
+    .kpi-detail-line::before { content:'•'; position:absolute; left:0; color: var(--muted); font-weight:700; }
     .kpi-progress-container { margin-top: auto; padding-top: 8px; }
     .value-ok { color: var(--green); }
     .value-warn { color: var(--orange); }
@@ -267,11 +269,19 @@
 const BUDGET_STORAGE_KEY = 'lifeos_budget_v4';
 const FUEL_STORAGE_KEY = 'lifeos_fuel_v1';
 const TASKS_STORAGE_KEY = 'lifeos_tasks_pro_v2';
-const TRAININGS_STORAGE_KEY = 'lifeos_trainings_v1';
+const TRAININGS_STORAGE_KEY_MODERN = 'lifeos_trainings_month_v1';
+const TRAININGS_STORAGE_KEY_LEGACY = 'lifeos_trainings_v1';
+const TRAININGS_STORAGE_KEYS = [TRAININGS_STORAGE_KEY_MODERN, TRAININGS_STORAGE_KEY_LEGACY];
 const HOUSE_STORAGE_KEY = 'buildmaster_pro_v11';
 const LOAN_STORAGE_KEY = 'lifeos_loan_v1';
 const SETTINGS_STORAGE_KEY = 'lifeos_settings_v1';
 const BACKUP_TIMESTAMP_KEY = 'lifeos_last_backup';
+
+const TRAINING_GOALS = {
+  gym: { target: 3, unit: 'sesje', name: 'Siłownia', icon: '🏋️' },
+  running: { target: 5, unit: 'km', name: 'Bieganie', icon: '🏃' },
+  reading: { target: 100, unit: 'stron', name: 'Czytanie', icon: '📚' },
+};
 
 /* === UTIL === */
 function fmt(n, c = 'PLN') {
@@ -296,7 +306,81 @@ function num(s) {
 }
 function monthKey(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function parseDate(dateString){ if(!dateString) return null; const p = dateString.split('-').map(Number); return new Date(Date.UTC(p[0], p[1]-1, p[2])); }
+function parseLocalDate(dateString){ if(!dateString) return null; const p = dateString.split('-').map(Number); if(p.some(v=>!Number.isFinite(v))) return null; return new Date(p[0], p[1]-1, p[2]); }
 function getWeekNumber(d){ d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7)); const yStart=new Date(Date.UTC(d.getUTCFullYear(),0,1)); return [d.getUTCFullYear(), Math.ceil((((d - yStart)/86400000)+1)/7)] }
+function getISOWeekStart(year, week){ const simple = new Date(Date.UTC(year,0,4)); simple.setUTCDate(simple.getUTCDate() + (week-1)*7); const day = simple.getUTCDay(); const diff = (day === 0 ? -6 : 1) - day; simple.setUTCDate(simple.getUTCDate()+diff); return new Date(simple.getFullYear(), simple.getMonth(), simple.getDate()); }
+function formatShortDate(date){ if(!(date instanceof Date)) return ''; const time = date.getTime(); if(Number.isNaN(time)) return ''; return date.toLocaleDateString('pl-PL',{ day:'2-digit', month:'2-digit' }); }
+function formatGoalValue(type, value){ const numValue = Number(value || 0); if(type === 'gym') return Math.max(0, Math.round(numValue)); const rounded = Math.round(numValue * 10) / 10; return Math.abs(rounded % 1) < 0.1 ? Math.round(rounded) : rounded.toFixed(1); }
+
+function normalizeFuelTransaction(tx){ if(!tx || !tx.date) return null; const normalized = { ...tx }; const rawAmount = num(tx.amount ?? tx.value); let type = (tx.type || '').toLowerCase(); if(type !== 'invoice' && type !== 'advance'){ type = rawAmount >= 0 ? 'advance' : 'invoice'; }
+  normalized.type = type;
+  normalized.amount = type === 'invoice' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
+  const litersSource = tx.liters ?? tx.details?.liters ?? tx.volume;
+  const litersValue = num(litersSource);
+  normalized.liters = type === 'invoice' && litersValue > 0 ? litersValue : null;
+  if(!normalized.ref && tx.reference) normalized.ref = tx.reference;
+  return normalized;
+}
+
+function getFuelData(){ const parsed = safeParse(localStorage.getItem(FUEL_STORAGE_KEY), {}); const rawList = Array.isArray(parsed?.transactions) ? parsed.transactions : []; const normalized = rawList.map(normalizeFuelTransaction).filter(Boolean).sort((a,b)=> (b.date||'').localeCompare(a.date||'')); const invoices = normalized.filter(tx=> tx.type === 'invoice'); const advances = normalized.filter(tx=> tx.type === 'advance'); return { transactions: normalized, invoices, advances };
+}
+
+function getTrainingStore(){ for(const key of TRAININGS_STORAGE_KEYS){ const raw = localStorage.getItem(key); if(!raw) continue; const parsed = safeParse(raw, null); if(parsed && typeof parsed === 'object'){ if(parsed.activities && typeof parsed.activities === 'object'){ return { type: 'modern', data: parsed }; }
+      return { type: 'legacy', data: parsed };
+    }
+  }
+  return { type: 'none', data: null };
+}
+
+function computeModernTrainingWeekStats(state, isoYear, isoWeek){ const weekStart = getISOWeekStart(isoYear, isoWeek); const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6); const totals = Object.fromEntries(Object.keys(TRAINING_GOALS).map(k=>[k,0])); const activities = state?.activities && typeof state.activities === 'object' ? state.activities : {};
+  Object.entries(activities).forEach(([dateStr, list])=>{
+    const day = parseLocalDate(dateStr);
+    if(!day) return;
+    day.setHours(0,0,0,0);
+    if(day < weekStart || day > weekEnd) return;
+    if(!Array.isArray(list)) return;
+    list.forEach(activity=>{
+      if(!activity || !TRAINING_GOALS[activity.type] || !activity.completed) return;
+      if(activity.type === 'gym'){ totals.gym += 1; return; }
+      const logged = Number(activity.loggedValue);
+      const planned = Number(activity.plannedValue);
+      const value = Number.isFinite(logged) && logged > 0 ? logged : (Number.isFinite(planned) ? planned : 0);
+      totals[activity.type] += value;
+    });
+  });
+  const goalPercents = {};
+  Object.entries(TRAINING_GOALS).forEach(([type, def])=>{
+    const progress = Number(totals[type] || 0);
+    const percent = def.target > 0 ? Math.min(100, Math.round((progress / def.target) * 100)) : 0;
+    goalPercents[type] = { progress, percent, target: def.target };
+  });
+  const average = Math.round(Object.values(goalPercents).reduce((sum, info)=> sum + (info.percent || 0), 0) / Object.keys(TRAINING_GOALS).length) || 0;
+  return { goalPercents, average, range: { start: weekStart, end: weekEnd } };
+}
+
+function computeModernCompletedWeeks(state, isoYear, isoWeek){ let completed = 0; for(let w = 1; w < isoWeek; w += 1){ const stats = computeModernTrainingWeekStats(state, isoYear, w); const allMet = Object.values(stats.goalPercents || {}).every(info => Number(info.percent || 0) >= 100); if(allMet) completed += 1; }
+  return completed;
+}
+
+function computeLegacyTrainingWeekStats(data, isoYear, isoWeek){ const weekStart = getISOWeekStart(isoYear, isoWeek); const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6); const weekData = data?.[isoYear]?.[isoWeek] || {}; const progress = weekData.progress || {}; const goalPercents = {};
+  Object.entries(TRAINING_GOALS).forEach(([type, def])=>{
+    const value = Number(progress[type] || 0);
+    const percent = def.target > 0 ? Math.min(100, Math.round((value / def.target) * 100)) : 0;
+    goalPercents[type] = { progress: value, percent, target: def.target };
+  });
+  const average = Math.round(Object.values(goalPercents).reduce((sum, info)=> sum + (info.percent || 0), 0) / Object.keys(TRAINING_GOALS).length) || 0;
+  const completedWeeks = Object.keys(data?.[isoYear] || {}).filter(wn => Number(wn) < isoWeek && data[isoYear][wn]?.isComplete).length;
+  const totalWeeks = Math.max(0, isoWeek - 1);
+  return { goalPercents, average, range: { start: weekStart, end: weekEnd }, completedWeeks, totalWeeks };
+}
+
+function getTrainingSummary(){ const now = new Date(); const [isoYear, isoWeek] = getWeekNumber(now); const totalWeeks = Math.max(0, isoWeek - 1); const store = getTrainingStore(); if(store.type === 'modern'){ const stats = computeModernTrainingWeekStats(store.data, isoYear, isoWeek); return { ...stats, completedWeeks: computeModernCompletedWeeks(store.data, isoYear, isoWeek), totalWeeks: totalWeeks };
+  }
+  if(store.type === 'legacy'){ const legacyStats = computeLegacyTrainingWeekStats(store.data, isoYear, isoWeek); if(typeof legacyStats.totalWeeks !== 'number') legacyStats.totalWeeks = totalWeeks; if(typeof legacyStats.completedWeeks !== 'number') legacyStats.completedWeeks = 0; return legacyStats; }
+  return { goalPercents: null, average: 0, range: null, completedWeeks: 0, totalWeeks };
+}
+
+function renderDetailLines(lines){ if(!Array.isArray(lines) || !lines.length) return '<div class="kpi-detail-line">Brak danych.</div>'; return lines.map(line => `<div class="kpi-detail-line">${line}</div>`).join(''); }
 
 /* === NOTIFICATION === */
 function showNotification(message, type='success'){
@@ -394,22 +478,19 @@ function renderUpcomingTasks(){
 /* === WEEKLY ACTIVITIES === */
 function renderWeeklyActivities(){
   const listEl = document.getElementById('weekly-activities-list');
-  const trainingsRaw = localStorage.getItem(TRAININGS_STORAGE_KEY);
-  const GOALS = { gym:{name:'Siłownia',icon:'🏋️',target:3,unit:'razy'}, running:{name:'Bieganie',icon:'🏃',target:5,unit:'km'}, reading:{name:'Czytanie',icon:'📚',target:100,unit:'stron'} };
-  const [y,w] = getWeekNumber(new Date());
-  let progressData = {};
-  const st = safeParse(trainingsRaw, {});
-  if(st && st[y] && st[y][w]){ progressData = st[y][w].progress || {}; }
-  listEl.innerHTML = Object.entries(GOALS).map(([k,g],i)=>{
-    const current = progressData[k] || 0;
-    const pct = Math.min(100, current/g.target*100);
-    return `<div class="activity-item" style="animation-delay:${i*.05}s;">
-      <div style="font-size:20px;width:32px;text-align:center">${g.icon}</div>
+  const summary = getTrainingSummary();
+  const goalPercents = summary.goalPercents || {};
+  listEl.innerHTML = Object.entries(TRAINING_GOALS).map(([type, meta], index)=>{
+    const info = goalPercents[type] || { progress: 0, percent: 0, target: meta.target };
+    const current = formatGoalValue(type, info.progress || 0);
+    const pct = Math.max(0, Math.min(100, Number(info.percent) || 0));
+    return `<div class="activity-item" style="animation-delay:${index * 0.05}s;">
+      <div style="font-size:20px;width:32px;text-align:center">${meta.icon}</div>
       <div style="flex:1">
-        <div style="font-weight:600;display:flex;justify-content:space-between"><span>${g.name}</span><span class="tiny muted">${current} / ${g.target} ${g.unit}</span></div>
+        <div style="font-weight:600;display:flex;justify-content:space-between"><span>${meta.name}</span><span class="tiny muted">${current} / ${meta.target} ${meta.unit}</span></div>
         <div class="progress" style="height:6px;margin-top:6px"><i style="width:${pct}%"></i></div>
       </div>
-    </div>`
+    </div>`;
   }).join('');
 }
 
@@ -496,7 +577,6 @@ function renderKPIs(){
 }
 
 function renderKPIData(){
-  const currency = 'PLN';
   const kpiElements = {
       budget: document.getElementById('kpi-budget'),
       fuel: document.getElementById('kpi-fuel'),
@@ -512,12 +592,6 @@ function renderKPIData(){
     const parsedBudget = safeParse(budgetRaw, null);
     const bState = parsedBudget?.modules?.budget || parsedBudget?.budget || parsedBudget;
     const ym = monthKey();
-    let budgetHTML = `
-      <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
-      <div class="kpi-main-value">—</div>
-      <div class="kpi-details">Brak danych na ten miesiąc.</div>
-      <div class="kpi-progress-container"></div>`;
-
     if(bState && bState.monthly && bState.monthly[ym]){
       const m = bState.monthly[ym];
       const incomes = Array.isArray(m.incomes) ? m.incomes : [];
@@ -536,7 +610,7 @@ function renderKPIData(){
         if(t.splits?.length){ return sum + t.splits.reduce((ss,sp)=>{ const cat=catsById[sp.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving') && cat.id!=='c_fixed') ? ss+Math.abs(num(sp.amount)) : ss },0) }
         const cat=catsById[t.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving') && cat.id!=='c_fixed') ? sum+Math.abs(num(t.amount)) : sum
       },0);
-      
+
       const buffer = budgetForToday - spentUntilToday;
       const bufferClass = buffer > budgetForToday * 0.2 ? 'value-ok' : buffer >= 0 ? 'value-warn' : 'value-bad';
 
@@ -547,47 +621,64 @@ function renderKPIData(){
       const monthlyBudget = incSum;
       const spentPct = monthlyBudget > 0 ? (totalSpentMonth / monthlyBudget) * 100 : 0;
 
-      budgetHTML = `
+      const detailLines = [
+        `Dzisiejszy limit: ${fmt(dailyBudget)} • wydano ${fmt(spentUntilToday)} z ${fmt(budgetForToday)}.`,
+        `Plan miesięczny: ${fmt(monthlyBudget)} (wykorzystano ${Math.round(spentPct)}%).`
+      ];
+
+      kpiElements.budget.innerHTML = `
         <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
         <div class="kpi-main-value ${bufferClass}">${fmt(buffer, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
-        <div class="kpi-details">
-          Zapas na dziś. Wydano ${fmt(spentUntilToday)} z ${fmt(budgetForToday)}.
-        </div>
+        <div class="kpi-details">${renderDetailLines(detailLines)}</div>
         <div class="kpi-progress-container">
           <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span>Budżet miesięczny</span><span>${spentPct.toFixed(0)}%</span>
+            <span>Budżet miesięczny</span><span>${Math.round(spentPct)}%</span>
           </div>
           <div class="progress"><i style="width:${spentPct}%"></i></div>
         </div>`;
+    } else {
+      kpiElements.budget.innerHTML = `
+        <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
+        <div class="kpi-main-value">—</div>
+        <div class="kpi-details">${renderDetailLines(['Brak danych na ten miesiąc.'])}</div>
+        <div class="kpi-progress-container"></div>`;
     }
-    kpiElements.budget.innerHTML = budgetHTML;
   } else {
-    kpiElements.budget.innerHTML = `<div class="kpi-header"><span>💰</span><h4>Budżet</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.budget.innerHTML = `<div class="kpi-header"><span>💰</span><h4>Budżet</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Fuel KPI ---
-  const fuelRaw = localStorage.getItem(FUEL_STORAGE_KEY);
-  if(fuelRaw){
-    const f = safeParse(fuelRaw, { transactions: [] });
-    const transactions = Array.isArray(f?.transactions) ? f.transactions : [];
-    const bal = transactions.reduce((a,tx)=> a+num(tx.amount||tx.value),0);
-    const balanceClass = bal >= 0 ? 'value-ok' : 'value-bad';
-
-    const last = transactions.filter(tx=> tx.type==='invoice' && tx.date).sort((a,b)=> b.date.localeCompare(a.date))[0];
-    let detailsHTML = 'Brak zarejestrowanych tankowań.';
-    if(last){
-      const days = Math.floor((new Date() - new Date(last.date))/86400000);
-      const amount = Math.abs(num(last.amount));
-      const liters = num(last.details?.liters);
-      const pricePerLiter = liters > 0 ? (amount / liters).toFixed(2) : 0;
-      detailsHTML = `Ostatnie tankowanie ${days} dni temu za ${fmt(amount)} (${liters.toFixed(1)} L @ ${pricePerLiter} zł).`;
+  const fuelData = getFuelData();
+  if(fuelData.transactions.length){
+    const balance = fuelData.transactions.reduce((sum, tx)=> sum + tx.amount, 0);
+    const balanceClass = balance >= 0 ? 'value-ok' : 'value-bad';
+    const lastInvoice = fuelData.invoices[0];
+    const detailLines = [];
+    if(lastInvoice){
+      const days = lastInvoice.date ? Math.floor((new Date() - new Date(lastInvoice.date))/86400000) : null;
+      const amount = Math.abs(Number(lastInvoice.amount) || 0);
+      const liters = typeof lastInvoice.liters === 'number' ? lastInvoice.liters : num(lastInvoice.liters);
+      detailLines.push(`Ostatnie tankowanie ${days === null ? '' : `${days} dni temu `}za ${fmt(amount)}.`);
+      if(liters && liters > 0){
+        const pricePerLiter = amount / liters;
+        detailLines.push(`${liters.toFixed(1)} L @ ${fmt(pricePerLiter, 'PLN/L')}`);
+      }
+    } else {
+      detailLines.push('Brak zarejestrowanych tankowań.');
+    }
+    const totalCost = fuelData.invoices.reduce((sum, tx)=> sum + Math.abs(Number(tx.amount) || 0), 0);
+    const totalLiters = fuelData.invoices.reduce((sum, tx)=> sum + (Number(tx.liters) || 0), 0);
+    if(totalLiters > 0){
+      detailLines.push(`Średnia cena: ${fmt(totalCost / totalLiters, 'PLN/L')} (${fuelData.invoices.length} fakt.)`);
+    } else {
+      detailLines.push(`${fuelData.invoices.length} faktur • ${fuelData.advances.length} zaliczek`);
     }
     kpiElements.fuel.innerHTML = `
       <div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div>
-      <div class="kpi-main-value ${balanceClass}">${fmt(bal, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
-      <div class="kpi-details">${detailsHTML}</div>`;
+      <div class="kpi-main-value ${balanceClass}">${fmt(balance, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>`;
   } else {
-    kpiElements.fuel.innerHTML = `<div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.fuel.innerHTML = `<div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Tasks KPI ---
@@ -606,14 +697,17 @@ function renderKPIData(){
     const end = new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
     const weekly = t.tasks.filter(x=> x.dueDate && new Date(x.dueDate)>=start && new Date(x.dueDate)<=end);
     const done = weekly.filter(x=> x.status==='done').length;
-    const planned = weekly.length; const progress = planned>0 ? (done/planned)*100 : 0;
-    
+    const planned = weekly.length;
+    const progress = planned>0 ? (done/planned)*100 : 0;
+    const detailLines = [
+      `Zaległe: ${overdue} • Na dziś: ${forToday}.`,
+      planned > 0 ? `Postęp tygodnia: ${done}/${planned} (${Math.round(progress)}%).` : 'Brak zadań zaplanowanych na ten tydzień.'
+    ];
+
     kpiElements.tasks.innerHTML = `
       <div class="kpi-header"><span>✅</span><h4>Zadania</h4></div>
       <div class="kpi-main-value ${activeClass}">${activeCount}</div>
-      <div class="kpi-details">
-        Aktywnych zadań. W tym <span style="color:var(--red); font-weight:600;">${overdue}</span> zaległych i <span style="font-weight:600;">${forToday}</span> na dziś.
-      </div>
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>
       <div class="kpi-progress-container">
         <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
           <span>Ukończono w tym tyg.</span><span>${done}/${planned}</span>
@@ -621,40 +715,38 @@ function renderKPIData(){
         <div class="progress"><i style="width:${progress}%"></i></div>
       </div>`;
   } else {
-    kpiElements.tasks.innerHTML = `<div class="kpi-header"><span>✅</span><h4>Zadania</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.tasks.innerHTML = `<div class="kpi-header"><span>✅</span><h4>Zadania</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Progress KPI ---
-  const trRaw = localStorage.getItem(TRAININGS_STORAGE_KEY);
-  if(trRaw){
-    const st = safeParse(trRaw, {});
-    const [y,w] = getWeekNumber(new Date());
-    const yData = st[y] || {};
-    const wd = yData[w];
-    let avg = 0;
-    if(wd){
-      const GOALS = { gym:3, running:5, reading:100 };
-      let sum=0, cnt=0;
-      for(const k in GOALS){ if(GOALS.hasOwnProperty(k)){ sum += Math.min(100, ((wd.progress[k]||0)/GOALS[k])*100); cnt++ }}
-      avg = cnt > 0 ? sum/cnt : 0;
-    }
+  const trainingSummary = getTrainingSummary();
+  if(trainingSummary.goalPercents){
+    const avg = Number(trainingSummary.average || 0);
     const avgClass = avg > 80 ? 'value-ok' : avg > 40 ? 'value-warn' : 'value-bad';
-    const completedWeeks = Object.keys(yData).filter(wn=> parseInt(wn)<w && yData[wn].isComplete).length;
+    const totalWeeks = typeof trainingSummary.totalWeeks === 'number' ? trainingSummary.totalWeeks : Math.max(0, getWeekNumber(new Date())[1] - 1);
+    const completedWeeks = trainingSummary.completedWeeks || 0;
+    const detailLines = [];
+    if(trainingSummary.range){
+      detailLines.push(`Zakres: ${formatShortDate(trainingSummary.range.start)} – ${formatShortDate(trainingSummary.range.end)}.`);
+    }
+    Object.entries(TRAINING_GOALS).forEach(([type, def])=>{
+      const info = trainingSummary.goalPercents?.[type] || { progress: 0, target: def.target };
+      detailLines.push(`${def.name}: ${formatGoalValue(type, info.progress || 0)} / ${def.target} ${def.unit}`);
+    });
+    detailLines.push(`W pełni zrealizowane tygodnie: ${completedWeeks}/${totalWeeks}.`);
 
     kpiElements.progress.innerHTML = `
       <div class="kpi-header"><span>💪</span><h4>Progres</h4></div>
       <div class="kpi-main-value ${avgClass}">${Math.round(avg)}<span class="tiny muted" style="margin-left: 4px;">%</span></div>
-      <div class="kpi-details">
-        Średni postęp w tym tygodniu. Ukończono <span style="font-weight:600;">${completedWeeks} z ${w-1}</span> poprzednich tyg. w tym roku.
-      </div>
-       <div class="kpi-progress-container">
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>
+      <div class="kpi-progress-container">
           <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
             <span>Postęp w tym tyg.</span>
           </div>
-          <div class="progress"><i style="width:${avg}%"></i></div>
+          <div class="progress"><i style="width:${Math.min(100, Math.max(0, avg))}%"></i></div>
       </div>`;
   } else {
-    kpiElements.progress.innerHTML = `<div class="kpi-header"><span>💪</span><h4>Progres</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.progress.innerHTML = `<div class="kpi-header"><span>💪</span><h4>Progres</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- House KPI ---
@@ -667,12 +759,14 @@ function renderKPIData(){
     const totalProgress = tasks.length > 0 ? completedTasksProgress.reduce((a,b) => a + b, 0) / tasks.length : 0;
     const totalExpenses = expenses.reduce((sum, e) => sum + num(e.amount), 0);
 
+    const detailLines = [
+      `${tasks.length} zadań • ${expenses.length} wydatków.`,
+      `Średni postęp zadań: ${tasks.length ? totalProgress.toFixed(0) : 0}%`
+    ];
     kpiElements.house.innerHTML = `
       <div class="kpi-header"><span>🏗️</span><h4>Budowa</h4></div>
       <div class="kpi-main-value">${fmt(totalExpenses)}</div>
-      <div class="kpi-details">
-        Całkowite wydatki projektu.
-      </div>
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>
       <div class="kpi-progress-container">
         <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
           <span>Całkowity postęp prac</span><span>${totalProgress.toFixed(0)}%</span>
@@ -680,7 +774,7 @@ function renderKPIData(){
         <div class="progress"><i style="width:${totalProgress}%"></i></div>
       </div>`;
   } else {
-    kpiElements.house.innerHTML = `<div class="kpi-header"><span>🏗️</span><h4>Budowa</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.house.innerHTML = `<div class="kpi-header"><span>🏗️</span><h4>Budowa</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Loan KPI ---
@@ -695,12 +789,14 @@ function renderKPIData(){
       const capitalRemaining = loanDetails.totalCapital - totalCapitalPaid;
       const progress = (totalCapitalPaid / loanDetails.totalCapital) * 100;
 
+      const detailLines = [
+        `Spłacono kapitału: ${fmt(totalCapitalPaid)}.`,
+        `Nadpłaty: ${fmt(totalOverpayments)}.`
+      ];
       kpiElements.loan.innerHTML = `
         <div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div>
         <div class="kpi-main-value">${fmt(capitalRemaining, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
-        <div class="kpi-details">
-          Pozostało do spłaty. Spłacono ${fmt(totalCapitalPaid)}.
-        </div>
+        <div class="kpi-details">${renderDetailLines(detailLines)}</div>
         <div class="kpi-progress-container">
           <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
             <span>Postęp spłaty</span><span>${progress.toFixed(1)}%</span>
@@ -708,10 +804,10 @@ function renderKPIData(){
           <div class="progress"><i style="width:${progress}%"></i></div>
         </div>`;
     } else {
-       kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">Brak skonfigurowanego kredytu.</div>`;
+       kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">${renderDetailLines(['Brak skonfigurowanego kredytu.'])}</div>`;
     }
   } else {
-    kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 }
 
@@ -797,11 +893,13 @@ const exportBtn = document.getElementById('export-all-btn');
 const importBtn = document.getElementById('import-all-btn');
 const importInput = document.getElementById('import-file-input');
 exportBtn.onclick = ()=>{
+  const trainingRaw = TRAININGS_STORAGE_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
+  const trainingData = trainingRaw ? safeParse(trainingRaw, null) : null;
   const allData = {
     budget: JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || 'null'),
     fuel: JSON.parse(localStorage.getItem(FUEL_STORAGE_KEY) || 'null'),
     tasks_pro: JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY) || 'null'),
-    trainings: JSON.parse(localStorage.getItem(TRAININGS_STORAGE_KEY) || 'null'),
+    trainings: trainingData,
     house: JSON.parse(localStorage.getItem(HOUSE_STORAGE_KEY) || 'null'),
     loan: JSON.parse(localStorage.getItem(LOAN_STORAGE_KEY) || 'null'),
     settings: JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null'),
@@ -823,7 +921,10 @@ importInput.onchange = (e)=>{
       if(data.budget) localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(data.budget));
       if(data.fuel) localStorage.setItem(FUEL_STORAGE_KEY, JSON.stringify(data.fuel));
       if(data.tasks_pro) localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(data.tasks_pro));
-      if(data.trainings) localStorage.setItem(TRAININGS_STORAGE_KEY, JSON.stringify(data.trainings));
+      if(data.trainings){
+        localStorage.setItem(TRAININGS_STORAGE_KEY_MODERN, JSON.stringify(data.trainings));
+        localStorage.removeItem(TRAININGS_STORAGE_KEY_LEGACY);
+      }
       if(data.house) localStorage.setItem(HOUSE_STORAGE_KEY, JSON.stringify(data.house));
       if(data.loan) localStorage.setItem(LOAN_STORAGE_KEY, JSON.stringify(data.loan));
       if(data.settings) localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(data.settings));

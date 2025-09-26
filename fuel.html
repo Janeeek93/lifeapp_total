@@ -181,9 +181,42 @@ function num(s){
     return Number.isFinite(n) ? n : 0;
 }
 
+function normalizeTransactions(list){
+    if(!Array.isArray(list)) return [];
+    return list.map(tx => {
+        if(!tx) return null;
+        const normalized = { ...tx };
+        const rawAmount = num(tx.amount ?? tx.value);
+        let type = (tx.type || '').toLowerCase();
+        if(type !== 'invoice' && type !== 'advance') {
+            type = rawAmount >= 0 ? 'advance' : 'invoice';
+        }
+        normalized.type = type;
+        normalized.amount = type === 'invoice' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
+        const litersSource = tx.liters ?? tx.details?.liters ?? tx.volume;
+        const litersValue = num(litersSource);
+        normalized.liters = type === 'invoice' && litersValue > 0 ? litersValue : null;
+        if(!normalized.ref && tx.reference) normalized.ref = tx.reference;
+        if(!normalized.id){
+            const seed = `${tx.date || Date.now()}_${Math.random().toString(16).slice(2,8)}`;
+            normalized.id = `tx_${seed}`;
+        }
+        return normalized;
+    }).filter(Boolean);
+}
+
 function loadState(){
-    const raw = localStorage.getItem(FUEL_STORAGE_KEY);
-    if(raw) return JSON.parse(raw);
+    try {
+        const raw = localStorage.getItem(FUEL_STORAGE_KEY);
+        if(!raw) return { transactions: [] };
+        const parsed = JSON.parse(raw);
+        if(parsed && typeof parsed === 'object'){
+            const transactions = Array.isArray(parsed.transactions) ? parsed.transactions : [];
+            return { ...parsed, transactions: normalizeTransactions(transactions) };
+        }
+    } catch {
+        return { transactions: [] };
+    }
     return { transactions: [] };
 }
 
@@ -222,7 +255,8 @@ const clearAllBtn = document.getElementById('clear-all-btn');
 
 
 function render() {
-    state.transactions.sort((a,b) => b.date.localeCompare(a.date));
+    state.transactions = normalizeTransactions(state.transactions || []);
+    state.transactions.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
     
     // Render Balance and Last Invoice
     const totalBalance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
@@ -230,14 +264,15 @@ function render() {
     balanceEl.className = `big-number ${totalBalance >= 0 ? 'ok' : 'bad'}`;
     balanceInfoEl.textContent = totalBalance >= 0 ? 'Firma jest Ci winna pieniądze' : 'Musisz zwrócić pieniądze firmie';
     
-    const lastInvoice = state.transactions.find(tx => tx.type === 'invoice');
+    const lastInvoice = state.transactions.find(tx => tx.type === 'invoice' && tx.date);
     if (lastInvoice) {
         const daysSince = Math.floor((new Date() - new Date(lastInvoice.date)) / (1000 * 60 * 60 * 24));
-        const pricePerLiter = (lastInvoice.liters) ? Math.abs(lastInvoice.amount / lastInvoice.liters) : 0;
+        const litersValue = typeof lastInvoice.liters === 'number' ? lastInvoice.liters : num(lastInvoice.liters);
+        const pricePerLiter = litersValue ? Math.abs(lastInvoice.amount) / litersValue : 0;
         lastInvoiceCard.innerHTML = `
             <div class="muted">Ostatnia faktura (${daysSince} dni temu)</div>
             <div style="font-size:18px; font-weight: 600;">${lastInvoice.date}</div>
-            <div class="muted">${fmt(Math.abs(lastInvoice.amount))} • ${lastInvoice.liters || 'N/A'} L • ${fmt(pricePerLiter, 'PLN/L')}</div>
+            <div class="muted">${fmt(Math.abs(lastInvoice.amount))} • ${litersValue ? litersValue.toFixed(2) + ' L' : '—'} • ${litersValue ? fmt(pricePerLiter, 'PLN/L') : '—'}</div>
         `;
     } else {
         lastInvoiceCard.innerHTML = `<div class="muted">Brak faktur w historii</div>`;
