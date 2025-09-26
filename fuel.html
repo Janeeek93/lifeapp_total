@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LifeOS — Paliwo</title>
+  <style>
+    :root{
+      --bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
+      --green:#059669;--red:#be123c;--orange:#ea580c;--blue:#0369a1
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto}
+    .wrap{max-width:900px;margin:0 auto;padding:24px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+    .row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+    .muted{color:var(--muted)}
+    .title{margin:0 0 8px 0;font-weight:700}
+    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:12px;padding:8px 12px;border:1px solid #0f172a;background:#0f172a;color:#fff;cursor:pointer; text-decoration: none;}
+    .btn.soft{background:#f1f5f9;border-color:#e2e8f0;color:#0f172a}
+    .btn.danger{background:#ffe4e6;border-color:#fecdd3;color:#b91c1c}
+    input,select{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;color:#0f172a;width:100%}
+    .grid{display:grid;gap:16px}
+    .g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media(max-width:900px){.g-2{grid-template-columns:1fr}}
+    .g-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    @media(max-width:900px){.g-4{grid-template-columns:1fr 1fr}}
+    .ok{color:var(--green)}.bad{color:var(--red)}
+    .stat-card{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px; text-align: center;}
+    .big-number{font-weight:800;font-size:32px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-top:1px solid var(--line);text-align:left;vertical-align:middle}
+    .chart-box{height:240px; margin-top: 16px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row">
+      <div class="row" style="gap:10px">
+        <a href="./index.html" class="btn soft" style="text-decoration: none;">← Powrót</a>
+        <div>
+          <div style="font-weight:800">Moduł Paliwowy</div>
+          <div class="muted" style="font-size:12px">Rozliczenia z firmą</div>
+        </div>
+      </div>
+      <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
+    </div>
+
+    <div class="grid g-2" style="margin-top:16px;">
+        <div class="stat-card">
+            <div class="muted">Aktualne Saldo</div>
+            <div id="fuel-balance" class="big-number">0,00 PLN</div>
+            <div class="muted" id="balance-info"></div>
+        </div>
+        <div id="last-invoice-card" class="stat-card"></div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+        <h3 class="title" id="form-title">Dodaj Transakcję</h3>
+        <div class="grid g-4">
+            <input type="hidden" id="tx-id">
+            <input type="date" id="tx-date">
+            <select id="tx-type">
+                <option value="invoice">Faktura (koszt)</option>
+                <option value="advance">Zaliczka (wpływ)</option>
+            </select>
+            <input type="text" id="tx-ref" placeholder="Nr faktury / Opis">
+            <input type="text" id="tx-liters" placeholder="Litry (opcjonalnie)" inputmode="decimal">
+            <input type="text" id="tx-amount" placeholder="Kwota" inputmode="decimal" required>
+            <div style="grid-column: 1 / -1; display:flex; gap: 8px; justify-content:flex-end;">
+              <button id="cancel-edit-btn" class="btn soft" style="display:none;">Anuluj</button>
+              <button id="add-tx-btn" class="btn">Dodaj</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="margin-top:16px;">
+        <div class="row">
+          <h3 class="title">Analityka</h3>
+          <select id="analytics-period-filter" style="width:auto;">
+              <option value="12" selected>Ostatni rok</option>
+              <option value="24">Ostatnie 2 lata</option>
+              <option value="36">Ostatnie 3 lata</option>
+              <option value="all">Wszystkie dane</option>
+          </select>
+        </div>
+        <div class="grid" style="margin-top:12px;">
+            <div class="card">
+                <div class="title">Miesięczne Koszty i Liczba Tankowań</div>
+                <div class="chart-box"><canvas id="monthly-costs-chart"></canvas></div>
+            </div>
+            <div class="card">
+                <div class="title">Średnia Cena za Litr</div>
+                <div class="chart-box"><canvas id="avg-price-chart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+        <div class="row">
+            <h3 class="title">Historia Transakcji</h3>
+            <div style="display:flex; gap: 8px;">
+                <button id="import-csv-btn" class="btn soft">Importuj z CSV</button>
+                <input type="file" id="csv-file-input" accept=".csv" style="display:none;">
+                <button id="export-csv-btn" class="btn soft">Eksportuj do CSV</button>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Typ</th>
+                    <th>Opis/Nr faktury</th>
+                    <th>Litry</th>
+                    <th>Cena/l</th>
+                    <th>Kwota</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="history-tbody"></tbody>
+        </table>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const FUEL_STORAGE_KEY = 'lifeos_fuel_v1';
+const KPI_STORAGE_KEY = 'lifeos_kpis_v1';
+
+function fmt(n, c = 'PLN') {
+    try {
+        const numValue = Number(n || 0);
+        const parts = numValue.toFixed(2).split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
+        return `${parts.join(',')}\u00A0${c}`;
+    } catch {
+        return `${Number(n || 0).toFixed(2)}\u00A0${c}`;
+    }
+}
+
+function num(s){
+    if(typeof s==='number') return s;
+    if(!s) return 0;
+    const raw = String(s).replace(/\s|\u00A0/g,'');
+    let normalized = raw;
+    if(raw.includes(',') && raw.includes('.')) normalized = raw.replace(/\./g,'').replace(',','.');
+    else normalized = raw.replace(',','.');
+    normalized = normalized.replace(/[^0-9.\-]/g,'');
+    const n = Number(normalized);
+    return Number.isFinite(n) ? n : 0;
+}
+
+function loadState(){
+    const raw = localStorage.getItem(FUEL_STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+    return { transactions: [] };
+}
+
+function saveState(state) {
+    localStorage.setItem(FUEL_STORAGE_KEY, JSON.stringify(state));
+    updateKPIs(state);
+}
+
+function updateKPIs(state) {
+    const balance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
+    const kpis = JSON.parse(localStorage.getItem(KPI_STORAGE_KEY) || '{}');
+    kpis.fuelBalance = balance;
+    kpis.timestamp = new Date().toISOString();
+    localStorage.setItem(KPI_STORAGE_KEY, JSON.stringify(kpis));
+}
+
+let state = loadState();
+
+const formTitle = document.getElementById('form-title');
+const txIdInput = document.getElementById('tx-id');
+const dateInput = document.getElementById('tx-date');
+const typeInput = document.getElementById('tx-type');
+const refInput = document.getElementById('tx-ref');
+const litersInput = document.getElementById('tx-liters');
+const amountInput = document.getElementById('tx-amount');
+const addBtn = document.getElementById('add-tx-btn');
+const cancelEditBtn = document.getElementById('cancel-edit-btn');
+const historyTbody = document.getElementById('history-tbody');
+const balanceEl = document.getElementById('fuel-balance');
+const balanceInfoEl = document.getElementById('balance-info');
+const lastInvoiceCard = document.getElementById('last-invoice-card');
+const exportBtn = document.getElementById('export-csv-btn');
+const importBtn = document.getElementById('import-csv-btn');
+const csvFileInput = document.getElementById('csv-file-input');
+const clearAllBtn = document.getElementById('clear-all-btn');
+
+
+function render() {
+    state.transactions.sort((a,b) => b.date.localeCompare(a.date));
+    
+    // Render Balance and Last Invoice
+    const totalBalance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
+    balanceEl.textContent = fmt(totalBalance);
+    balanceEl.className = `big-number ${totalBalance >= 0 ? 'ok' : 'bad'}`;
+    balanceInfoEl.textContent = totalBalance >= 0 ? 'Firma jest Ci winna pieniądze' : 'Musisz zwrócić pieniądze firmie';
+    
+    const lastInvoice = state.transactions.find(tx => tx.type === 'invoice');
+    if (lastInvoice) {
+        const daysSince = Math.floor((new Date() - new Date(lastInvoice.date)) / (1000 * 60 * 60 * 24));
+        const pricePerLiter = (lastInvoice.liters) ? Math.abs(lastInvoice.amount / lastInvoice.liters) : 0;
+        lastInvoiceCard.innerHTML = `
+            <div class="muted">Ostatnia faktura (${daysSince} dni temu)</div>
+            <div style="font-size:18px; font-weight: 600;">${lastInvoice.date}</div>
+            <div class="muted">${fmt(Math.abs(lastInvoice.amount))} • ${lastInvoice.liters || 'N/A'} L • ${fmt(pricePerLiter, 'PLN/L')}</div>
+        `;
+    } else {
+        lastInvoiceCard.innerHTML = `<div class="muted">Brak faktur w historii</div>`;
+    }
+
+    // Render History Table
+    historyTbody.innerHTML = '';
+    state.transactions.forEach(tx => {
+        const tr = document.createElement('tr');
+        const pricePerLiter = (tx.liters && tx.amount < 0) ? Math.abs(tx.amount / tx.liters) : 0;
+        tr.innerHTML = `
+            <td>${tx.date}</td>
+            <td><span class="pill" style="background-color: ${tx.type === 'invoice' ? '#fee2e2' : '#dcfce7'}; color: ${tx.type === 'invoice' ? '#b91c1c' : '#166534'}">${tx.type === 'invoice' ? 'Faktura' : 'Zaliczka'}</span></td>
+            <td>${tx.ref}</td>
+            <td>${tx.liters ? tx.liters.toFixed(2) + ' L' : '—'}</td>
+            <td>${pricePerLiter > 0 ? fmt(pricePerLiter, 'PLN/L') : '—'}</td>
+            <td class="${tx.amount < 0 ? 'bad' : 'ok'}">${fmt(tx.amount)}</td>
+            <td style="display:flex; gap: 8px;">
+                <button class="btn soft" data-edit-id="${tx.id}">Edytuj</button>
+                <button class="btn danger" data-del-id="${tx.id}">Usuń</button>
+            </td>
+        `;
+        historyTbody.appendChild(tr);
+    });
+    
+    if (state.transactions.length === 0) {
+        historyTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;" class="muted">Brak transakcji</td></tr>';
+    }
+
+    document.querySelectorAll('[data-del-id]').forEach(btn => {
+        btn.onclick = (e) => {
+            const id = e.target.dataset.delId;
+            if (confirm('Czy na pewno chcesz usunąć tę transakcję?')) {
+                state.transactions = state.transactions.filter(tx => tx.id !== id);
+                saveState(state);
+                render();
+            }
+        };
+    });
+    
+    document.querySelectorAll('[data-edit-id]').forEach(btn => {
+        btn.onclick = (e) => {
+            startEdit(e.target.dataset.editId);
+        };
+    });
+
+
+    renderAnalytics();
+}
+
+function startEdit(id) {
+    const tx = state.transactions.find(t => t.id === id);
+    if (!tx) return;
+    
+    txIdInput.value = tx.id;
+    dateInput.value = tx.date;
+    typeInput.value = tx.type;
+    refInput.value = tx.ref;
+    litersInput.value = tx.liters || '';
+    amountInput.value = String(Math.abs(tx.amount)).replace('.',',');
+
+    formTitle.textContent = "Edytuj Transakcję";
+    addBtn.textContent = "Zapisz zmiany";
+    cancelEditBtn.style.display = 'inline-flex';
+}
+
+function resetForm() {
+    txIdInput.value = '';
+    dateInput.value = new Date().toISOString().slice(0,10);
+    refInput.value = '';
+    litersInput.value = '';
+    amountInput.value = '';
+    typeInput.value = 'invoice';
+
+    formTitle.textContent = "Dodaj Transakcję";
+    addBtn.textContent = "Dodaj";
+    cancelEditBtn.style.display = 'none';
+}
+
+function renderAnalytics() {
+    const periodMonths = document.getElementById('analytics-period-filter').value;
+    const now = new Date();
+    let startDate = new Date(1970, 0, 1);
+
+    if (periodMonths !== 'all') {
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        startDate.setMonth(startDate.getMonth() - parseInt(periodMonths, 10));
+    }
+
+    const invoices = state.transactions.filter(tx => tx.type === 'invoice' && new Date(tx.date) >= startDate);
+    
+    const monthlyData = invoices.reduce((acc, tx) => {
+        const month = tx.date.slice(0, 7);
+        if (!acc[month]) {
+            acc[month] = { totalCost: 0, totalLiters: 0, count: 0 };
+        }
+        acc[month].totalCost += Math.abs(tx.amount);
+        acc[month].totalLiters += tx.liters || 0;
+        acc[month].count += 1;
+        return acc;
+    }, {});
+
+    const labels = Object.keys(monthlyData).sort();
+    const costs = labels.map(m => monthlyData[m].totalCost);
+    const counts = labels.map(m => monthlyData[m].count);
+    const avgPrices = labels.map(m => monthlyData[m].totalLiters > 0 ? monthlyData[m].totalCost / monthlyData[m].totalLiters : 0);
+    
+    renderMonthlyCostsChart(labels, costs, counts);
+    renderAvgPriceChart(labels, avgPrices);
+}
+
+const datalabelsPlugin = {
+    id: 'datalabels',
+    afterDraw: (chart) => {
+        const ctx = chart.ctx;
+        chart.data.datasets.forEach((dataset, i) => {
+            if (dataset.type === 'bar' || !dataset.type) {
+                const meta = chart.getDatasetMeta(i);
+                meta.data.forEach((bar, index) => {
+                    const data = dataset.data[index];
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '11px sans-serif';
+                    ctx.fillText(Math.round(data), bar.x, bar.y - 5);
+                    ctx.restore();
+                });
+            }
+        });
+    }
+};
+
+function renderMonthlyCostsChart(labels, costs, counts) {
+    const ctx = document.getElementById('monthly-costs-chart').getContext('2d');
+    if(window.monthlyCostsChart) window.monthlyCostsChart.destroy();
+    window.monthlyCostsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: 'Miesięczny koszt paliwa',
+                    data: costs,
+                    backgroundColor: 'rgba(190, 18, 60, 0.7)',
+                    yAxisID: 'y',
+                },
+                {
+                    label: 'Liczba tankowań',
+                    data: counts,
+                    type: 'line',
+                    borderColor: 'rgba(3, 105, 161, 0.7)',
+                    yAxisID: 'y1',
+                    tension: 0.1
+                }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: true }, datalabels: { display: true } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { display: true, position: 'left', beginAtZero: true, grid: { display: false }, ticks: {callback: (v) => fmt(v) } },
+                y1: { display: true, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
+            }
+        },
+        plugins: [datalabelsPlugin]
+    });
+}
+
+
+function renderAvgPriceChart(labels, prices) {
+    const ctx = document.getElementById('avg-price-chart').getContext('2d');
+    if(window.avgPriceChart) window.avgPriceChart.destroy();
+    window.avgPriceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Średnia cena za litr',
+                data: prices,
+                borderColor: 'rgba(234, 88, 12, 0.7)',
+                backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                fill: true,
+                tension: 0.1
+            }]
+        },
+        options: { 
+            responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }},
+            scales: { x: { grid: { display: false } }, y: { grid: { display: false }, beginAtZero: false, ticks: { callback: (v) => fmt(v, 'PLN/L') } } } 
+        }
+    });
+}
+
+addBtn.addEventListener('click', () => {
+    const id = txIdInput.value;
+    const date = dateInput.value;
+    const type = typeInput.value;
+    const ref = refInput.value;
+    const liters = num(litersInput.value);
+    const amountRaw = num(amountInput.value);
+
+    if (!date || !amountRaw) {
+        alert('Data i kwota są wymagane.');
+        return;
+    }
+    const amount = type === 'invoice' ? -Math.abs(amountRaw) : Math.abs(amountRaw);
+    
+    if (id) { // Edit mode
+        const index = state.transactions.findIndex(tx => tx.id === id);
+        if (index > -1) {
+            state.transactions[index] = { id, date, type, ref, liters: type === 'invoice' ? liters : null, amount };
+        }
+    } else { // Add mode
+        state.transactions.push({ id: `tx_${Date.now()}`, date, type, ref, liters: type === 'invoice' ? liters : null, amount });
+    }
+
+    saveState(state);
+    resetForm();
+    render();
+});
+
+cancelEditBtn.addEventListener('click', resetForm);
+
+exportBtn.addEventListener('click', () => {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Data;Typ;Opis;Litry;Kwota\n";
+
+    state.transactions.forEach(tx => {
+        const row = [
+            tx.date,
+            tx.type,
+            `"${tx.ref.replace(/"/g, '""')}"`,
+            tx.liters || 0,
+            Math.abs(tx.amount)
+        ].join(';');
+        csvContent += row + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `paliwo_export_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+});
+
+importBtn.addEventListener('click', () => csvFileInput.click());
+csvFileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+        const text = event.target.result;
+        const rows = text.split('\n').slice(1); // Skip header
+        let importedCount = 0;
+        rows.forEach(rowStr => {
+            if (!rowStr.trim()) return;
+            const columns = rowStr.split(';');
+            if (columns.length < 5) return;
+
+            const [date, type, ref, liters, amountRaw] = columns;
+            
+            const amount = type.trim().toLowerCase() === 'invoice' 
+                ? -Math.abs(num(amountRaw)) 
+                : Math.abs(num(amountRaw));
+
+            state.transactions.push({
+                id: `tx_${Date.now()}_${Math.random()}`,
+                date: date.trim(),
+                type: type.trim().toLowerCase(),
+                ref: ref.replace(/"/g, '').trim(),
+                liters: num(liters),
+                amount: amount
+            });
+            importedCount++;
+        });
+        saveState(state);
+        render();
+        alert(`Zaimportowano ${importedCount} transakcji.`);
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset file input
+});
+
+
+clearAllBtn.addEventListener('click', () => {
+    if (confirm('Czy na pewno chcesz usunąć wszystkie dane z modułu paliwowego? Tej operacji nie można cofnąć.')) {
+        state.transactions = [];
+        saveState(state);
+        render();
+        alert('Wszystkie dane zostały usunięte.');
+    }
+});
+
+// Initial setup
+dateInput.value = new Date().toISOString().slice(0,10);
+document.getElementById('analytics-period-filter').onchange = renderAnalytics;
+render();
+
+</script>
+</body>
+</html>
+
