@@ -4,172 +4,349 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LifeOS — Paliwo</title>
+  <link rel="stylesheet" href="assets/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root{
-      --bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
-      --green:#059669;--red:#be123c;--orange:#ea580c;--blue:#0369a1
+    .fuel-highlights {
+      margin-bottom: 28px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto}
-    .wrap{max-width:900px;margin:0 auto;padding:24px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-    .row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
-    .muted{color:var(--muted)}
-    .title{margin:0 0 8px 0;font-weight:700}
-    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:12px;padding:8px 12px;border:1px solid #0f172a;background:#0f172a;color:#fff;cursor:pointer; text-decoration: none;}
-    .btn.soft{background:#f1f5f9;border-color:#e2e8f0;color:#0f172a}
-    .btn.danger{background:#ffe4e6;border-color:#fecdd3;color:#b91c1c}
-    input,select{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;color:#0f172a;width:100%}
-    .grid{display:grid;gap:16px}
-    .g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    @media(max-width:900px){.g-2{grid-template-columns:1fr}}
-    .g-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media(max-width:900px){.g-4{grid-template-columns:1fr 1fr}}
-    .ok{color:var(--green)}.bad{color:var(--red)}
-    .stat-card{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px; text-align: center;}
-    .big-number{font-weight:800;font-size:32px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-top:1px solid var(--line);text-align:left;vertical-align:middle}
-    .chart-box{height:240px; margin-top: 16px;}
+    .fuel-highlights .stat-card {
+      min-height: 140px;
+    }
+    .fuel-highlights .stat-card:hover {
+      transform: translateY(-2px);
+    }
+    .fuel-highlights .stat-card strong {
+      font-size: 13px;
+    }
+    .chip.status-positive {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(236, 253, 245, 0.9);
+      color: var(--green);
+    }
+    .chip.status-negative {
+      border-color: rgba(248, 113, 113, 0.45);
+      background: rgba(254, 226, 226, 0.9);
+      color: var(--red);
+    }
+    .chip.status-neutral {
+      border-color: rgba(148, 163, 184, 0.4);
+      background: rgba(241, 245, 249, 0.85);
+      color: var(--muted);
+    }
+    .chip.price-chip {
+      border-color: rgba(59, 130, 246, 0.35);
+      background: rgba(219, 234, 254, 0.85);
+      color: var(--blue);
+    }
+    .form-grid {
+      align-items: end;
+    }
+    .form-grid .form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .history-filters {
+      margin-bottom: 18px;
+    }
+    .history-filters .grid {
+      align-items: end;
+    }
+    .history-pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .history-pills .badge {
+      background: rgba(255,255,255,0.85);
+    }
+    .chart-grid {
+      margin-top: 20px;
+    }
+    .chart-box {
+      height: 280px;
+    }
+    .history-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+    .history-actions .tiny {
+      text-align: right;
+    }
+    .history-type-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .history-type-pill.invoice {
+      background: rgba(248, 113, 113, 0.1);
+      color: #b91c1c;
+    }
+    .history-type-pill.advance {
+      background: rgba(34, 197, 94, 0.12);
+      color: #166534;
+    }
+    .history-table-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    @media (max-width: 720px) {
+      .history-actions {
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row">
-      <div class="row" style="gap:10px">
-        <a href="./index.html" class="btn soft" style="text-decoration: none;">← Powrót</a>
-        <div>
-          <div style="font-weight:800">Moduł Paliwowy</div>
-          <div class="muted" style="font-size:12px">Rozliczenia z firmą</div>
+  <header class="page-header slim">
+    <div class="wrap">
+      <div>
+        <p class="page-kicker">LifeOS · Rozliczenia</p>
+        <h1 class="page-title">Moduł paliwowy</h1>
+        <p class="page-subtitle">Rejestruj tankowania, kontroluj saldo z firmą i obserwuj jak zmieniają się koszty paliwa.</p>
+        <div class="chip-set" style="margin-top: 14px;">
+          <span class="chip status-neutral" id="fuel-status-chip">Saldo neutralne</span>
+          <span class="chip price-chip" id="fuel-price-chip">Śr. cena —</span>
         </div>
       </div>
-      <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
+      <div class="page-header-actions">
+        <a href="index.html" class="btn soft">← Dashboard</a>
+        <button id="import-csv-btn" class="btn">📥 Importuj CSV</button>
+        <input type="file" id="csv-file-input" accept=".csv" hidden>
+        <button id="export-csv-btn" class="btn">📤 Eksportuj CSV</button>
+        <button id="clear-all-btn" class="btn danger">🗑 Wyczyść dane</button>
+      </div>
     </div>
+  </header>
 
-    <div class="grid g-2" style="margin-top:16px;">
-        <div class="stat-card">
-            <div class="muted">Aktualne Saldo</div>
-            <div id="fuel-balance" class="big-number">0,00 PLN</div>
-            <div class="muted" id="balance-info"></div>
-        </div>
-        <div id="last-invoice-card" class="stat-card"></div>
-    </div>
+  <main class="wrap">
+    <section class="grid g-4 fuel-highlights" id="fuel-highlights">
+      <div class="stat-card" id="balance-card">
+        <span class="stat-label">Aktualne saldo</span>
+        <span class="stat-value" id="fuel-balance">0,00 PLN</span>
+        <span class="stat-trend" id="balance-info">Brak transakcji — zacznij od dodania pierwszej pozycji.</span>
+      </div>
+      <div class="stat-card" id="last-invoice-card">
+        <span class="stat-label">Ostatnia faktura</span>
+        <span class="stat-value">—</span>
+        <span class="stat-trend">Dodaj fakturę, aby zobaczyć szczegóły.</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Koszty bieżącego miesiąca</span>
+        <span class="stat-value" id="monthly-spend">—</span>
+        <span class="stat-trend" id="monthly-spend-trend">Brak danych historycznych.</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Tankowania (30 dni)</span>
+        <span class="stat-value" id="fill-ups-count">0</span>
+        <span class="stat-trend" id="fill-ups-trend">Brak danych historycznych.</span>
+      </div>
+    </section>
 
-    <div class="card" style="margin-top:16px;">
-        <h3 class="title" id="form-title">Dodaj Transakcję</h3>
-        <div class="grid g-4">
-            <input type="hidden" id="tx-id">
-            <input type="date" id="tx-date">
-            <select id="tx-type">
-                <option value="invoice">Faktura (koszt)</option>
-                <option value="advance">Zaliczka (wpływ)</option>
-            </select>
-            <input type="text" id="tx-ref" placeholder="Nr faktury / Opis">
-            <input type="text" id="tx-liters" placeholder="Litry (opcjonalnie)" inputmode="decimal">
-            <input type="text" id="tx-amount" placeholder="Kwota" inputmode="decimal" required>
-            <div style="grid-column: 1 / -1; display:flex; gap: 8px; justify-content:flex-end;">
-              <button id="cancel-edit-btn" class="btn soft" style="display:none;">Anuluj</button>
-              <button id="add-tx-btn" class="btn">Dodaj</button>
-            </div>
+    <section class="card">
+      <div class="card-header">
+        <h3 class="card-title" id="form-title">Dodaj transakcję</h3>
+        <span class="badge" id="current-month-summary">Brak danych za bieżący miesiąc</span>
+      </div>
+      <div class="grid g-4 form-grid">
+        <input type="hidden" id="tx-id">
+        <div>
+          <label class="tiny" for="tx-date">Data</label>
+          <input type="date" id="tx-date">
         </div>
-    </div>
-    
-    <div class="card" style="margin-top:16px;">
-        <div class="row">
-          <h3 class="title">Analityka</h3>
-          <select id="analytics-period-filter" style="width:auto;">
-              <option value="12" selected>Ostatni rok</option>
-              <option value="24">Ostatnie 2 lata</option>
-              <option value="36">Ostatnie 3 lata</option>
-              <option value="all">Wszystkie dane</option>
+        <div>
+          <label class="tiny" for="tx-type">Typ operacji</label>
+          <select id="tx-type">
+            <option value="invoice">Faktura (koszt)</option>
+            <option value="advance">Zaliczka (wpływ)</option>
           </select>
         </div>
-        <div class="grid" style="margin-top:12px;">
-            <div class="card">
-                <div class="title">Miesięczne Koszty i Liczba Tankowań</div>
-                <div class="chart-box"><canvas id="monthly-costs-chart"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="title">Średnia Cena za Litr</div>
-                <div class="chart-box"><canvas id="avg-price-chart"></canvas></div>
-            </div>
+        <div>
+          <label class="tiny" for="tx-ref">Opis / numer faktury</label>
+          <input type="text" id="tx-ref" placeholder="Nr faktury, stacja lub opis">
         </div>
-    </div>
+        <div>
+          <label class="tiny" for="tx-liters">Ilość litrów</label>
+          <input type="text" id="tx-liters" placeholder="np. 45,8" inputmode="decimal">
+        </div>
+        <div>
+          <label class="tiny" for="tx-amount">Kwota</label>
+          <input type="text" id="tx-amount" placeholder="np. 320,50" inputmode="decimal" required>
+        </div>
+        <div class="form-actions">
+          <button id="cancel-edit-btn" class="btn soft" style="display:none;">Anuluj</button>
+          <button id="add-tx-btn" class="btn primary">Zapisz transakcję</button>
+        </div>
+      </div>
+    </section>
 
-    <div class="card" style="margin-top:16px;">
-        <div class="row">
-            <h3 class="title">Historia Transakcji</h3>
-            <div style="display:flex; gap: 8px;">
-                <button id="import-csv-btn" class="btn soft">Importuj z CSV</button>
-                <input type="file" id="csv-file-input" accept=".csv" style="display:none;">
-                <button id="export-csv-btn" class="btn soft">Eksportuj do CSV</button>
-            </div>
+    <section class="card" style="margin-top: 24px;">
+      <div class="card-header">
+        <h3 class="card-title">Analityka</h3>
+        <div class="toolbar-actions">
+          <label class="tiny" for="analytics-period-filter">Zakres danych</label>
+          <select id="analytics-period-filter">
+            <option value="12">Ostatni rok</option>
+            <option value="24">Ostatnie 2 lata</option>
+            <option value="36">Ostatnie 3 lata</option>
+            <option value="all">Wszystkie dane</option>
+          </select>
         </div>
+      </div>
+      <div class="grid g-2 chart-grid">
+        <div class="card" style="box-shadow:none; border: none; background: transparent; padding: 0;">
+          <div class="surface-card">
+            <h4 class="title" style="margin-bottom: 12px;">Miesięczne koszty i liczba tankowań</h4>
+            <div class="chart-box"><canvas id="monthly-costs-chart"></canvas></div>
+          </div>
+        </div>
+        <div class="card" style="box-shadow:none; border: none; background: transparent; padding: 0;">
+          <div class="surface-card">
+            <h4 class="title" style="margin-bottom: 12px;">Średnia cena za litr</h4>
+            <div class="chart-box"><canvas id="avg-price-chart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top: 24px;">
+      <div class="card-header">
+        <h3 class="card-title">Historia rozliczeń</h3>
+        <div class="history-actions">
+          <div class="history-pills" id="history-pills"></div>
+          <span class="tiny" id="history-summary"></span>
+        </div>
+      </div>
+      <div class="surface-card history-filters">
+        <div class="grid g-4">
+          <div>
+            <label class="tiny" for="history-type-filter">Typ operacji</label>
+            <select id="history-type-filter">
+              <option value="all">Wszystkie</option>
+              <option value="invoice">Tylko faktury</option>
+              <option value="advance">Tylko zaliczki</option>
+            </select>
+          </div>
+          <div>
+            <label class="tiny" for="history-year-filter">Rok</label>
+            <select id="history-year-filter">
+              <option value="all">Wszystkie lata</option>
+            </select>
+          </div>
+          <div>
+            <label class="tiny" for="history-sort">Sortowanie</label>
+            <select id="history-sort">
+              <option value="newest">Najnowsze najpierw</option>
+              <option value="oldest">Najstarsze najpierw</option>
+              <option value="amount_desc">Najwyższa kwota</option>
+              <option value="amount_asc">Najniższa kwota</option>
+            </select>
+          </div>
+          <div>
+            <label class="tiny" for="history-search">Szukaj</label>
+            <input type="search" id="history-search" placeholder="Szukaj po numerze faktury lub opisie">
+          </div>
+        </div>
+      </div>
+      <div class="table-wrapper">
         <table>
-            <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Typ</th>
-                    <th>Opis/Nr faktury</th>
-                    <th>Litry</th>
-                    <th>Cena/l</th>
-                    <th>Kwota</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="history-tbody"></tbody>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Typ</th>
+              <th>Opis</th>
+              <th>Litry</th>
+              <th>Cena / l</th>
+              <th>Kwota</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody"></tbody>
         </table>
-    </div>
-  </div>
+      </div>
+    </section>
+  </main>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 const FUEL_STORAGE_KEY = 'lifeos_fuel_v1';
 const KPI_STORAGE_KEY = 'lifeos_kpis_v1';
 
 function fmt(n, c = 'PLN') {
-    try {
-        const numValue = Number(n || 0);
-        const parts = numValue.toFixed(2).split('.');
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
-        return `${parts.join(',')}\u00A0${c}`;
-    } catch {
-        return `${Number(n || 0).toFixed(2)}\u00A0${c}`;
-    }
+  try {
+    const numValue = Number(n || 0);
+    const parts = numValue.toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
+    return `${parts.join(',')}\u00A0${c}`;
+  } catch {
+    return `${Number(n || 0).toFixed(2)}\u00A0${c}`;
+  }
 }
 
-function num(s){
-    if(typeof s==='number') return s;
-    if(!s) return 0;
-    const raw = String(s).replace(/\s|\u00A0/g,'');
-    let normalized = raw;
-    if(raw.includes(',') && raw.includes('.')) normalized = raw.replace(/\./g,'').replace(',','.');
-    else normalized = raw.replace(',','.');
-    normalized = normalized.replace(/[^0-9.\-]/g,'');
-    const n = Number(normalized);
-    return Number.isFinite(n) ? n : 0;
+function num(value) {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  const raw = String(value).trim().replace(/\s|\u00A0/g, '').replace(/,/g, '.');
+  const cleaned = raw.replace(/[^0-9.\-]/g, '');
+  const parsed = Number(cleaned);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function loadState(){
-    const raw = localStorage.getItem(FUEL_STORAGE_KEY);
-    if(raw) return JSON.parse(raw);
+function monthKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function loadState() {
+  const raw = localStorage.getItem(FUEL_STORAGE_KEY);
+  if (!raw) return { transactions: [] };
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed.transactions ? parsed : { transactions: [] };
+  } catch {
     return { transactions: [] };
+  }
 }
 
 function saveState(state) {
-    localStorage.setItem(FUEL_STORAGE_KEY, JSON.stringify(state));
-    updateKPIs(state);
+  localStorage.setItem(FUEL_STORAGE_KEY, JSON.stringify(state));
+  updateKPIs(state);
 }
 
 function updateKPIs(state) {
-    const balance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
-    const kpis = JSON.parse(localStorage.getItem(KPI_STORAGE_KEY) || '{}');
-    kpis.fuelBalance = balance;
-    kpis.timestamp = new Date().toISOString();
-    localStorage.setItem(KPI_STORAGE_KEY, JSON.stringify(kpis));
+  const balance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
+  const kpis = JSON.parse(localStorage.getItem(KPI_STORAGE_KEY) || '{}');
+  kpis.fuelBalance = balance;
+  kpis.timestamp = new Date().toISOString();
+  localStorage.setItem(KPI_STORAGE_KEY, JSON.stringify(kpis));
 }
 
 let state = loadState();
+let monthlyCostsChart = null;
+let avgPriceChart = null;
+
+const balanceEl = document.getElementById('fuel-balance');
+const balanceInfoEl = document.getElementById('balance-info');
+const lastInvoiceCard = document.getElementById('last-invoice-card');
+const monthlySpendEl = document.getElementById('monthly-spend');
+const monthlySpendTrendEl = document.getElementById('monthly-spend-trend');
+const fillUpsCountEl = document.getElementById('fill-ups-count');
+const fillUpsTrendEl = document.getElementById('fill-ups-trend');
+const statusChip = document.getElementById('fuel-status-chip');
+const priceChip = document.getElementById('fuel-price-chip');
+const historySummaryEl = document.getElementById('history-summary');
+const historyPillsEl = document.getElementById('history-pills');
+const currentMonthSummaryEl = document.getElementById('current-month-summary');
 
 const formTitle = document.getElementById('form-title');
 const txIdInput = document.getElementById('tx-id');
@@ -181,335 +358,541 @@ const amountInput = document.getElementById('tx-amount');
 const addBtn = document.getElementById('add-tx-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const historyTbody = document.getElementById('history-tbody');
-const balanceEl = document.getElementById('fuel-balance');
-const balanceInfoEl = document.getElementById('balance-info');
-const lastInvoiceCard = document.getElementById('last-invoice-card');
+
+const typeFilter = document.getElementById('history-type-filter');
+const yearFilter = document.getElementById('history-year-filter');
+const sortSelect = document.getElementById('history-sort');
+const searchInput = document.getElementById('history-search');
+
+const analyticsPeriodFilter = document.getElementById('analytics-period-filter');
 const exportBtn = document.getElementById('export-csv-btn');
 const importBtn = document.getElementById('import-csv-btn');
 const csvFileInput = document.getElementById('csv-file-input');
 const clearAllBtn = document.getElementById('clear-all-btn');
 
-
-function render() {
-    state.transactions.sort((a,b) => b.date.localeCompare(a.date));
-    
-    // Render Balance and Last Invoice
-    const totalBalance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
-    balanceEl.textContent = fmt(totalBalance);
-    balanceEl.className = `big-number ${totalBalance >= 0 ? 'ok' : 'bad'}`;
-    balanceInfoEl.textContent = totalBalance >= 0 ? 'Firma jest Ci winna pieniądze' : 'Musisz zwrócić pieniądze firmie';
-    
-    const lastInvoice = state.transactions.find(tx => tx.type === 'invoice');
-    if (lastInvoice) {
-        const daysSince = Math.floor((new Date() - new Date(lastInvoice.date)) / (1000 * 60 * 60 * 24));
-        const pricePerLiter = (lastInvoice.liters) ? Math.abs(lastInvoice.amount / lastInvoice.liters) : 0;
-        lastInvoiceCard.innerHTML = `
-            <div class="muted">Ostatnia faktura (${daysSince} dni temu)</div>
-            <div style="font-size:18px; font-weight: 600;">${lastInvoice.date}</div>
-            <div class="muted">${fmt(Math.abs(lastInvoice.amount))} • ${lastInvoice.liters || 'N/A'} L • ${fmt(pricePerLiter, 'PLN/L')}</div>
-        `;
-    } else {
-        lastInvoiceCard.innerHTML = `<div class="muted">Brak faktur w historii</div>`;
-    }
-
-    // Render History Table
-    historyTbody.innerHTML = '';
-    state.transactions.forEach(tx => {
-        const tr = document.createElement('tr');
-        const pricePerLiter = (tx.liters && tx.amount < 0) ? Math.abs(tx.amount / tx.liters) : 0;
-        tr.innerHTML = `
-            <td>${tx.date}</td>
-            <td><span class="pill" style="background-color: ${tx.type === 'invoice' ? '#fee2e2' : '#dcfce7'}; color: ${tx.type === 'invoice' ? '#b91c1c' : '#166534'}">${tx.type === 'invoice' ? 'Faktura' : 'Zaliczka'}</span></td>
-            <td>${tx.ref}</td>
-            <td>${tx.liters ? tx.liters.toFixed(2) + ' L' : '—'}</td>
-            <td>${pricePerLiter > 0 ? fmt(pricePerLiter, 'PLN/L') : '—'}</td>
-            <td class="${tx.amount < 0 ? 'bad' : 'ok'}">${fmt(tx.amount)}</td>
-            <td style="display:flex; gap: 8px;">
-                <button class="btn soft" data-edit-id="${tx.id}">Edytuj</button>
-                <button class="btn danger" data-del-id="${tx.id}">Usuń</button>
-            </td>
-        `;
-        historyTbody.appendChild(tr);
-    });
-    
-    if (state.transactions.length === 0) {
-        historyTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;" class="muted">Brak transakcji</td></tr>';
-    }
-
-    document.querySelectorAll('[data-del-id]').forEach(btn => {
-        btn.onclick = (e) => {
-            const id = e.target.dataset.delId;
-            if (confirm('Czy na pewno chcesz usunąć tę transakcję?')) {
-                state.transactions = state.transactions.filter(tx => tx.id !== id);
-                saveState(state);
-                render();
-            }
-        };
-    });
-    
-    document.querySelectorAll('[data-edit-id]').forEach(btn => {
-        btn.onclick = (e) => {
-            startEdit(e.target.dataset.editId);
-        };
-    });
-
-
-    renderAnalytics();
+function setStatusChip(stateText, variant) {
+  statusChip.textContent = stateText;
+  statusChip.classList.remove('status-positive', 'status-negative', 'status-neutral');
+  statusChip.classList.add(variant);
 }
 
-function startEdit(id) {
-    const tx = state.transactions.find(t => t.id === id);
-    if (!tx) return;
-    
-    txIdInput.value = tx.id;
-    dateInput.value = tx.date;
-    typeInput.value = tx.type;
-    refInput.value = tx.ref;
-    litersInput.value = tx.liters || '';
-    amountInput.value = String(Math.abs(tx.amount)).replace('.',',');
-
-    formTitle.textContent = "Edytuj Transakcję";
-    addBtn.textContent = "Zapisz zmiany";
-    cancelEditBtn.style.display = 'inline-flex';
+function updatePriceChip(value, suffix) {
+  priceChip.textContent = value ? `Śr. cena ${value}${suffix || ''}` : 'Śr. cena —';
+  priceChip.classList.toggle('active', Boolean(value));
 }
 
-function resetForm() {
-    txIdInput.value = '';
-    dateInput.value = new Date().toISOString().slice(0,10);
-    refInput.value = '';
-    litersInput.value = '';
-    amountInput.value = '';
-    typeInput.value = 'invoice';
+function renderHighlights() {
+  const transactions = [...state.transactions];
+  if (transactions.length === 0) {
+    balanceEl.textContent = fmt(0);
+    balanceEl.className = 'stat-value';
+    balanceInfoEl.textContent = 'Dodaj faktury i zaliczki, aby zobaczyć saldo.';
+    lastInvoiceCard.innerHTML = `
+      <span class="stat-label">Ostatnia faktura</span>
+      <span class="stat-value">—</span>
+      <span class="stat-trend">Brak historii tankowań.</span>`;
+    monthlySpendEl.textContent = '—';
+    monthlySpendTrendEl.textContent = 'Brak danych historycznych.';
+    fillUpsCountEl.textContent = '0';
+    fillUpsTrendEl.textContent = 'Brak danych historycznych.';
+    setStatusChip('Saldo neutralne', 'status-neutral');
+    updatePriceChip('—');
+    currentMonthSummaryEl.textContent = 'Brak danych za bieżący miesiąc';
+    historyPillsEl.innerHTML = '';
+    return;
+  }
 
-    formTitle.textContent = "Dodaj Transakcję";
-    addBtn.textContent = "Dodaj";
-    cancelEditBtn.style.display = 'none';
-}
+  const totalBalance = transactions.reduce((acc, tx) => acc + tx.amount, 0);
+  balanceEl.textContent = fmt(totalBalance);
+  balanceEl.className = `stat-value ${totalBalance > 0 ? 'ok' : totalBalance < 0 ? 'bad' : ''}`;
+  if (totalBalance > 0) {
+    balanceInfoEl.textContent = 'Firma jest Ci winna środki z tytułu rozliczeń.';
+    setStatusChip('Saldo na plusie', 'status-positive');
+  } else if (totalBalance < 0) {
+    balanceInfoEl.textContent = 'Masz do wyrównania różnicę wobec firmy.';
+    setStatusChip('Saldo do wyrównania', 'status-negative');
+  } else {
+    balanceInfoEl.textContent = 'Saldo jest wyzerowane na podstawie ostatnich transakcji.';
+    setStatusChip('Saldo neutralne', 'status-neutral');
+  }
 
-function renderAnalytics() {
-    const periodMonths = document.getElementById('analytics-period-filter').value;
-    const now = new Date();
-    let startDate = new Date(1970, 0, 1);
+  const invoices = transactions.filter(tx => tx.type === 'invoice');
+  const advances = transactions.filter(tx => tx.type === 'advance');
 
-    if (periodMonths !== 'all') {
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        startDate.setMonth(startDate.getMonth() - parseInt(periodMonths, 10));
+  const lastInvoice = invoices.slice().sort((a, b) => b.date.localeCompare(a.date))[0];
+  if (lastInvoice) {
+    const daysSince = Math.floor((new Date() - new Date(lastInvoice.date)) / 86400000);
+    const pricePerLiter = lastInvoice.liters ? Math.abs(lastInvoice.amount) / Math.max(1, lastInvoice.liters) : 0;
+    const litersText = lastInvoice.liters ? `${lastInvoice.liters.toFixed(1)} l` : '—';
+    lastInvoiceCard.innerHTML = `
+      <span class="stat-label">Ostatnia faktura</span>
+      <span class="stat-value">${fmt(Math.abs(lastInvoice.amount))}</span>
+      <span class="stat-trend">${new Date(lastInvoice.date).toLocaleDateString('pl-PL', { year: 'numeric', month: 'long', day: 'numeric' })} • ${litersText} • ${pricePerLiter ? fmt(pricePerLiter, 'PLN/L') : '—'}</span>
+      <span class="stat-trend muted">${daysSince === 0 ? 'dzisiaj' : daysSince === 1 ? 'wczoraj' : `${daysSince} dni temu`}</span>`;
+    if (pricePerLiter) {
+      updatePriceChip(pricePerLiter.toFixed(2), ' PLN/L');
     }
+  } else {
+    lastInvoiceCard.innerHTML = `
+      <span class="stat-label">Ostatnia faktura</span>
+      <span class="stat-value">—</span>
+      <span class="stat-trend">Brak faktur w historii.</span>`;
+    updatePriceChip(null);
+  }
 
-    const invoices = state.transactions.filter(tx => tx.type === 'invoice' && new Date(tx.date) >= startDate);
-    
-    const monthlyData = invoices.reduce((acc, tx) => {
-        const month = tx.date.slice(0, 7);
-        if (!acc[month]) {
-            acc[month] = { totalCost: 0, totalLiters: 0, count: 0 };
-        }
-        acc[month].totalCost += Math.abs(tx.amount);
-        acc[month].totalLiters += tx.liters || 0;
-        acc[month].count += 1;
-        return acc;
-    }, {});
+  const today = new Date();
+  const thisMonthKey = monthKey(today);
+  const prevDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const prevMonthKey = monthKey(prevDate);
 
-    const labels = Object.keys(monthlyData).sort();
-    const costs = labels.map(m => monthlyData[m].totalCost);
-    const counts = labels.map(m => monthlyData[m].count);
-    const avgPrices = labels.map(m => monthlyData[m].totalLiters > 0 ? monthlyData[m].totalCost / monthlyData[m].totalLiters : 0);
-    
-    renderMonthlyCostsChart(labels, costs, counts);
-    renderAvgPriceChart(labels, avgPrices);
+  const monthlyGroups = invoices.reduce((acc, tx) => {
+    const key = tx.date.slice(0, 7);
+    if (!acc[key]) acc[key] = { cost: 0, count: 0, liters: 0 };
+    acc[key].cost += Math.abs(tx.amount);
+    acc[key].count += 1;
+    acc[key].liters += tx.liters || 0;
+    return acc;
+  }, {});
+
+  const thisMonthCost = monthlyGroups[thisMonthKey]?.cost || 0;
+  const thisMonthCount = monthlyGroups[thisMonthKey]?.count || 0;
+  const prevMonthCost = monthlyGroups[prevMonthKey]?.cost || 0;
+
+  monthlySpendEl.textContent = thisMonthCost ? fmt(thisMonthCost) : '—';
+  if (prevMonthCost) {
+    const diff = thisMonthCost - prevMonthCost;
+    const diffPct = prevMonthCost ? (diff / prevMonthCost) * 100 : 0;
+    const trendClass = diff < 0 ? 'positive' : diff > 0 ? 'negative' : '';
+    monthlySpendTrendEl.className = `stat-trend ${trendClass}`;
+    monthlySpendTrendEl.textContent = diff === 0
+      ? 'Taki sam poziom wydatków jak w poprzednim miesiącu.'
+      : `${diff < 0 ? '↓' : '↑'} ${Math.abs(diffPct).toFixed(1)}% vs poprzedni miesiąc`;
+  } else {
+    monthlySpendTrendEl.className = 'stat-trend';
+    monthlySpendTrendEl.textContent = 'Brak danych z poprzedniego miesiąca.';
+  }
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const sixtyDaysAgo = new Date();
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+  const fillUps30 = invoices.filter(tx => new Date(tx.date) >= thirtyDaysAgo).length;
+  const fillUpsPrev30 = invoices.filter(tx => new Date(tx.date) >= sixtyDaysAgo && new Date(tx.date) < thirtyDaysAgo).length;
+  fillUpsCountEl.textContent = String(fillUps30);
+  if (fillUpsPrev30 > 0) {
+    const diff = fillUps30 - fillUpsPrev30;
+    fillUpsTrendEl.className = `stat-trend ${diff < 0 ? 'negative' : diff > 0 ? 'positive' : ''}`;
+    fillUpsTrendEl.textContent = diff === 0 ? 'Tyle samo tankowań co w poprzednich 30 dniach.' : `${diff > 0 ? '+' : ''}${diff} vs poprzednie 30 dni.`;
+  } else {
+    fillUpsTrendEl.className = 'stat-trend';
+    fillUpsTrendEl.textContent = 'Brak danych z poprzedniego okresu.';
+  }
+
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  const recentInvoices = invoices.filter(tx => new Date(tx.date) >= ninetyDaysAgo);
+  const totalRecentLiters = recentInvoices.reduce((sum, tx) => sum + (tx.liters || 0), 0);
+  const totalRecentCost = recentInvoices.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+  const lifetimeLiters = invoices.reduce((sum, tx) => sum + (tx.liters || 0), 0);
+  const lifetimeCost = invoices.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+
+  const rollingPrice = totalRecentLiters ? totalRecentCost / totalRecentLiters : 0;
+  const avgLifetimePrice = lifetimeLiters ? lifetimeCost / lifetimeLiters : 0;
+  if (rollingPrice) {
+    const diff = rollingPrice - avgLifetimePrice;
+    const indicator = diff > 0 ? '↑' : diff < 0 ? '↓' : '•';
+    updatePriceChip(`${rollingPrice.toFixed(2)} PLN/L (${indicator}${Math.abs(diff).toFixed(2)} vs średnia)`);
+  } else {
+    updatePriceChip(null);
+  }
+
+  currentMonthSummaryEl.textContent = thisMonthCount
+    ? `${thisMonthCount} ${thisMonthCount === 1 ? 'tankowanie' : thisMonthCount < 5 ? 'tankowania' : 'tankowań'} na ${fmt(thisMonthCost)}`
+    : 'Brak tankowań w tym miesiącu';
+
+  historyPillsEl.innerHTML = `
+    <span class="badge">Faktury: <strong>${invoices.length}</strong></span>
+    <span class="badge">Zaliczki: <strong>${advances.length}</strong></span>
+    <span class="badge">Bilans: <strong>${fmt(totalBalance)}</strong></span>`;
+}
+
+function renderFilters() {
+  const years = Array.from(new Set(state.transactions.map(tx => tx.date.slice(0, 4)))).sort((a, b) => b.localeCompare(a));
+  const selectedYear = yearFilter.value;
+  yearFilter.innerHTML = '<option value="all">Wszystkie lata</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+  if (years.includes(selectedYear)) {
+    yearFilter.value = selectedYear;
+  }
+}
+
+function getFilteredTransactions() {
+  const type = typeFilter.value;
+  const year = yearFilter.value;
+  const search = searchInput.value.trim().toLowerCase();
+
+  return state.transactions.filter(tx => {
+    if (type !== 'all' && tx.type !== type) return false;
+    if (year !== 'all' && !tx.date.startsWith(year)) return false;
+    if (search && !(tx.ref || '').toLowerCase().includes(search)) return false;
+    return true;
+  });
+}
+
+function renderHistoryTable() {
+  const filtered = getFilteredTransactions();
+  const totalAmount = filtered.reduce((sum, tx) => sum + tx.amount, 0);
+  const invoicesCount = filtered.filter(tx => tx.type === 'invoice').length;
+  const advancesCount = filtered.filter(tx => tx.type === 'advance').length;
+  historySummaryEl.textContent = filtered.length
+    ? `${filtered.length} pozycji • ${fmt(totalAmount)} bilansu • Faktury: ${invoicesCount}, Zaliczki: ${advancesCount}`
+    : 'Brak wyników dla wybranych filtrów.';
+
+  const sorted = filtered.slice().sort((a, b) => {
+    switch (sortSelect.value) {
+      case 'oldest':
+        return a.date.localeCompare(b.date);
+      case 'amount_desc':
+        return Math.abs(b.amount) - Math.abs(a.amount);
+      case 'amount_asc':
+        return Math.abs(a.amount) - Math.abs(b.amount);
+      default:
+        return b.date.localeCompare(a.date);
+    }
+  });
+
+  if (sorted.length === 0) {
+    historyTbody.innerHTML = `<tr><td colspan="7" class="muted" style="text-align:center; padding: 20px;">Brak transakcji do wyświetlenia.</td></tr>`;
+    return;
+  }
+
+  historyTbody.innerHTML = sorted.map(tx => {
+    const liters = tx.liters ? tx.liters.toFixed(2) : '—';
+    const pricePerLiter = tx.liters && tx.amount < 0 ? Math.abs(tx.amount) / Math.max(1, tx.liters) : 0;
+    const pillClass = tx.type === 'invoice' ? 'invoice' : 'advance';
+    const amountClass = tx.amount < 0 ? 'bad' : 'ok';
+    return `
+      <tr>
+        <td>${new Date(tx.date).toLocaleDateString('pl-PL')}</td>
+        <td><span class="history-type-pill ${pillClass}">${tx.type === 'invoice' ? 'Faktura' : 'Zaliczka'}</span></td>
+        <td>${tx.ref || '—'}</td>
+        <td>${liters}</td>
+        <td>${pricePerLiter ? fmt(pricePerLiter, 'PLN/L') : '—'}</td>
+        <td class="${amountClass}">${fmt(tx.amount)}</td>
+        <td>
+          <div class="history-table-actions">
+            <button class="btn tiny soft" data-edit-id="${tx.id}">Edytuj</button>
+            <button class="btn tiny danger" data-del-id="${tx.id}">Usuń</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  document.querySelectorAll('[data-del-id]').forEach(btn => {
+    btn.onclick = (event) => {
+      const id = event.currentTarget.dataset.delId;
+      if (confirm('Czy na pewno chcesz usunąć tę transakcję?')) {
+        state.transactions = state.transactions.filter(tx => tx.id !== id);
+        saveState(state);
+        render();
+      }
+    };
+  });
+
+  document.querySelectorAll('[data-edit-id]').forEach(btn => {
+    btn.onclick = (event) => {
+      startEdit(event.currentTarget.dataset.editId);
+    };
+  });
 }
 
 const datalabelsPlugin = {
-    id: 'datalabels',
-    afterDraw: (chart) => {
-        const ctx = chart.ctx;
-        chart.data.datasets.forEach((dataset, i) => {
-            if (dataset.type === 'bar' || !dataset.type) {
-                const meta = chart.getDatasetMeta(i);
-                meta.data.forEach((bar, index) => {
-                    const data = dataset.data[index];
-                    ctx.save();
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'bottom';
-                    ctx.fillStyle = '#64748b';
-                    ctx.font = '11px sans-serif';
-                    ctx.fillText(Math.round(data), bar.x, bar.y - 5);
-                    ctx.restore();
-                });
-            }
+  id: 'datalabels',
+  afterDraw: (chart) => {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((dataset, i) => {
+      if (dataset.type === 'bar' || !dataset.type) {
+        const meta = chart.getDatasetMeta(i);
+        meta.data.forEach((bar, index) => {
+          const data = dataset.data[index];
+          if (data === null || typeof data === 'undefined') return;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillStyle = '#64748b';
+          ctx.font = '11px Inter, sans-serif';
+          ctx.fillText(Math.round(data), bar.x, bar.y - 5);
+          ctx.restore();
         });
-    }
+      }
+    });
+  }
 };
 
-function renderMonthlyCostsChart(labels, costs, counts) {
-    const ctx = document.getElementById('monthly-costs-chart').getContext('2d');
-    if(window.monthlyCostsChart) window.monthlyCostsChart.destroy();
-    window.monthlyCostsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [
-                {
-                    label: 'Miesięczny koszt paliwa',
-                    data: costs,
-                    backgroundColor: 'rgba(190, 18, 60, 0.7)',
-                    yAxisID: 'y',
-                },
-                {
-                    label: 'Liczba tankowań',
-                    data: counts,
-                    type: 'line',
-                    borderColor: 'rgba(3, 105, 161, 0.7)',
-                    yAxisID: 'y1',
-                    tension: 0.1
-                }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: true }, datalabels: { display: true } },
-            scales: {
-                x: { grid: { display: false } },
-                y: { display: true, position: 'left', beginAtZero: true, grid: { display: false }, ticks: {callback: (v) => fmt(v) } },
-                y1: { display: true, position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { stepSize: 1 } }
-            }
-        },
-        plugins: [datalabelsPlugin]
-    });
+function renderAnalytics() {
+  const period = analyticsPeriodFilter.value;
+  const now = new Date();
+  let startDate = new Date(1970, 0, 1);
+  if (period !== 'all') {
+    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    startDate.setMonth(startDate.getMonth() - parseInt(period, 10));
+  }
+
+  const invoices = state.transactions.filter(tx => tx.type === 'invoice' && new Date(tx.date) >= startDate);
+  const monthlyData = invoices.reduce((acc, tx) => {
+    const month = tx.date.slice(0, 7);
+    if (!acc[month]) acc[month] = { totalCost: 0, totalLiters: 0, count: 0 };
+    acc[month].totalCost += Math.abs(tx.amount);
+    acc[month].totalLiters += tx.liters || 0;
+    acc[month].count += 1;
+    return acc;
+  }, {});
+
+  const labels = Object.keys(monthlyData).sort();
+  const costs = labels.map(m => monthlyData[m].totalCost);
+  const counts = labels.map(m => monthlyData[m].count);
+  const avgPrices = labels.map(m => monthlyData[m].totalLiters > 0 ? monthlyData[m].totalCost / monthlyData[m].totalLiters : 0);
+
+  renderMonthlyCostsChart(labels, costs, counts);
+  renderAvgPriceChart(labels, avgPrices);
 }
 
+function renderMonthlyCostsChart(labels, costs, counts) {
+  const ctx = document.getElementById('monthly-costs-chart').getContext('2d');
+  if (monthlyCostsChart) monthlyCostsChart.destroy();
+  monthlyCostsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Koszt paliwa',
+          data: costs,
+          backgroundColor: 'rgba(220, 38, 38, 0.65)',
+          borderRadius: 6,
+          yAxisID: 'y',
+        },
+        {
+          label: 'Liczba tankowań',
+          data: counts,
+          type: 'line',
+          borderColor: 'rgba(37, 99, 235, 0.7)',
+          backgroundColor: 'rgba(37, 99, 235, 0.15)',
+          tension: 0.25,
+          yAxisID: 'y1',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true },
+        datalabels: { display: labels.length <= 18 }
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(226, 232, 240, 0.4)' },
+          ticks: { callback: (value) => fmt(value) }
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          ticks: { stepSize: 1 }
+        }
+      }
+    },
+    plugins: [datalabelsPlugin]
+  });
+}
 
 function renderAvgPriceChart(labels, prices) {
-    const ctx = document.getElementById('avg-price-chart').getContext('2d');
-    if(window.avgPriceChart) window.avgPriceChart.destroy();
-    window.avgPriceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Średnia cena za litr',
-                data: prices,
-                borderColor: 'rgba(234, 88, 12, 0.7)',
-                backgroundColor: 'rgba(234, 88, 12, 0.1)',
-                fill: true,
-                tension: 0.1
-            }]
-        },
-        options: { 
-            responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }},
-            scales: { x: { grid: { display: false } }, y: { grid: { display: false }, beginAtZero: false, ticks: { callback: (v) => fmt(v, 'PLN/L') } } } 
+  const ctx = document.getElementById('avg-price-chart').getContext('2d');
+  if (avgPriceChart) avgPriceChart.destroy();
+  avgPriceChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Średnia cena za litr',
+        data: prices,
+        borderColor: 'rgba(234, 88, 12, 0.8)',
+        backgroundColor: 'rgba(234, 88, 12, 0.12)',
+        fill: true,
+        tension: 0.25,
+        spanGaps: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: {
+          grid: { color: 'rgba(226, 232, 240, 0.35)' },
+          ticks: { callback: (value) => fmt(value, 'PLN/L') }
         }
-    });
+      }
+    }
+  });
+}
+
+function startEdit(id) {
+  const tx = state.transactions.find(t => t.id === id);
+  if (!tx) return;
+
+  txIdInput.value = tx.id;
+  dateInput.value = tx.date;
+  typeInput.value = tx.type;
+  refInput.value = tx.ref || '';
+  litersInput.value = tx.liters || '';
+  amountInput.value = String(Math.abs(tx.amount)).replace('.', ',');
+
+  formTitle.textContent = 'Edytuj transakcję';
+  addBtn.textContent = 'Zapisz zmiany';
+  cancelEditBtn.style.display = 'inline-flex';
+}
+
+function resetForm() {
+  txIdInput.value = '';
+  dateInput.value = new Date().toISOString().slice(0, 10);
+  typeInput.value = 'invoice';
+  refInput.value = '';
+  litersInput.value = '';
+  amountInput.value = '';
+  formTitle.textContent = 'Dodaj transakcję';
+  addBtn.textContent = 'Zapisz transakcję';
+  cancelEditBtn.style.display = 'none';
 }
 
 addBtn.addEventListener('click', () => {
-    const id = txIdInput.value;
-    const date = dateInput.value;
-    const type = typeInput.value;
-    const ref = refInput.value;
-    const liters = num(litersInput.value);
-    const amountRaw = num(amountInput.value);
+  const id = txIdInput.value;
+  const date = dateInput.value;
+  const type = typeInput.value;
+  const ref = refInput.value.trim();
+  const liters = num(litersInput.value);
+  const amountRaw = num(amountInput.value);
 
-    if (!date || !amountRaw) {
-        alert('Data i kwota są wymagane.');
-        return;
-    }
-    const amount = type === 'invoice' ? -Math.abs(amountRaw) : Math.abs(amountRaw);
-    
-    if (id) { // Edit mode
-        const index = state.transactions.findIndex(tx => tx.id === id);
-        if (index > -1) {
-            state.transactions[index] = { id, date, type, ref, liters: type === 'invoice' ? liters : null, amount };
-        }
-    } else { // Add mode
-        state.transactions.push({ id: `tx_${Date.now()}`, date, type, ref, liters: type === 'invoice' ? liters : null, amount });
-    }
+  if (!date || !amountRaw) {
+    alert('Data i kwota są wymagane.');
+    return;
+  }
 
-    saveState(state);
-    resetForm();
-    render();
+  const amount = type === 'invoice' ? -Math.abs(amountRaw) : Math.abs(amountRaw);
+
+  if (id) {
+    const index = state.transactions.findIndex(tx => tx.id === id);
+    if (index > -1) {
+      state.transactions[index] = { id, date, type, ref, liters: type === 'invoice' ? liters : null, amount };
+    }
+  } else {
+    state.transactions.push({
+      id: `tx_${Date.now()}`,
+      date,
+      type,
+      ref,
+      liters: type === 'invoice' ? liters : null,
+      amount
+    });
+  }
+
+  saveState(state);
+  resetForm();
+  render();
 });
 
 cancelEditBtn.addEventListener('click', resetForm);
 
 exportBtn.addEventListener('click', () => {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Data;Typ;Opis;Litry;Kwota\n";
-
-    state.transactions.forEach(tx => {
-        const row = [
-            tx.date,
-            tx.type,
-            `"${tx.ref.replace(/"/g, '""')}"`,
-            tx.liters || 0,
-            Math.abs(tx.amount)
-        ].join(';');
-        csvContent += row + "\n";
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `paliwo_export_${new Date().toISOString().slice(0,10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  let csvContent = 'data:text/csv;charset=utf-8,';
+  csvContent += 'Data;Typ;Opis;Litry;Kwota\n';
+  state.transactions.forEach(tx => {
+    const row = [
+      tx.date,
+      tx.type,
+      `"${(tx.ref || '').replace(/"/g, '""')}"`,
+      tx.liters || 0,
+      Math.abs(tx.amount)
+    ].join(';');
+    csvContent += row + '\n';
+  });
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.href = encodedUri;
+  link.download = `paliwo_export_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 });
 
 importBtn.addEventListener('click', () => csvFileInput.click());
 csvFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        const text = event.target.result;
-        const rows = text.split('\n').slice(1); // Skip header
-        let importedCount = 0;
-        rows.forEach(rowStr => {
-            if (!rowStr.trim()) return;
-            const columns = rowStr.split(';');
-            if (columns.length < 5) return;
-
-            const [date, type, ref, liters, amountRaw] = columns;
-            
-            const amount = type.trim().toLowerCase() === 'invoice' 
-                ? -Math.abs(num(amountRaw)) 
-                : Math.abs(num(amountRaw));
-
-            state.transactions.push({
-                id: `tx_${Date.now()}_${Math.random()}`,
-                date: date.trim(),
-                type: type.trim().toLowerCase(),
-                ref: ref.replace(/"/g, '').trim(),
-                liters: num(liters),
-                amount: amount
-            });
-            importedCount++;
-        });
-        saveState(state);
-        render();
-        alert(`Zaimportowano ${importedCount} transakcji.`);
-    };
-    reader.readAsText(file);
-    e.target.value = ''; // Reset file input
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const text = event.target.result;
+    const rows = text.split(/\r?\n/).slice(1);
+    let importedCount = 0;
+    rows.forEach(rowStr => {
+      if (!rowStr.trim()) return;
+      const columns = rowStr.split(';');
+      if (columns.length < 5) return;
+      const [date, type, ref, liters, amountRaw] = columns;
+      const normalizedType = type.trim().toLowerCase();
+      const amount = normalizedType === 'invoice' ? -Math.abs(num(amountRaw)) : Math.abs(num(amountRaw));
+      state.transactions.push({
+        id: `tx_${Date.now()}_${Math.random()}`,
+        date: date.trim(),
+        type: normalizedType === 'advance' ? 'advance' : 'invoice',
+        ref: ref.replace(/"/g, '').trim(),
+        liters: num(liters),
+        amount
+      });
+      importedCount++;
+    });
+    saveState(state);
+    render();
+    alert(`Zaimportowano ${importedCount} transakcji.`);
+  };
+  reader.readAsText(file);
+  e.target.value = '';
 });
-
 
 clearAllBtn.addEventListener('click', () => {
-    if (confirm('Czy na pewno chcesz usunąć wszystkie dane z modułu paliwowego? Tej operacji nie można cofnąć.')) {
-        state.transactions = [];
-        saveState(state);
-        render();
-        alert('Wszystkie dane zostały usunięte.');
-    }
+  if (confirm('Czy na pewno chcesz usunąć wszystkie dane z modułu paliwowego? Tej operacji nie można cofnąć.')) {
+    state.transactions = [];
+    saveState(state);
+    render();
+    alert('Wszystkie dane zostały usunięte.');
+  }
 });
 
-// Initial setup
-dateInput.value = new Date().toISOString().slice(0,10);
-document.getElementById('analytics-period-filter').onchange = renderAnalytics;
-render();
+[typeFilter, yearFilter, sortSelect].forEach(select => {
+  select.addEventListener('change', renderHistoryTable);
+});
 
+searchInput.addEventListener('input', () => {
+  renderHistoryTable();
+});
+
+analyticsPeriodFilter.addEventListener('change', renderAnalytics);
+
+function render() {
+  state.transactions.sort((a, b) => a.date.localeCompare(b.date));
+  renderHighlights();
+  renderFilters();
+  renderHistoryTable();
+  renderAnalytics();
+}
+
+resetForm();
+render();
 </script>
 </body>
 </html>
-

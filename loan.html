@@ -4,225 +4,281 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LifeOS — Kredyt</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
-    :root, [data-theme="light"]{
-      --accent-h: 222; --accent-s: 83%; --accent-l: 53%;
-      --accent: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
-      --accent-weak: hsl(var(--accent-h) 60% 94%);
-      --bg:#f6f7fb; --card:#ffffff; --ink:#0f172a; --muted:#667085; --line:#e7eaf0;
-      --surface:#f9fafb;
-      --green:#059669; --red:#dc2626; --orange:#ea580c; --blue:#2563eb;
-      --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow:0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-      --shadow-md:0 6px 16px -6px rgb(0 0 0 / 0.12);
+    #dashboard-container {
+      display: none;
+      gap: 24px;
     }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0; background: var(--bg); color: var(--ink);
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto;
-      font-size: 14px; line-height: 1.6;
+    #dashboard-container.active {
+      display: grid;
     }
-    
-    @keyframes fadeInUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
-
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px; }
-    .grid { display: grid; gap: 24px; }
-    .g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    @media(max-width:1024px){ .g-3{grid-template-columns: repeat(2,1fr)} .g-2{grid-template-columns:1fr} }
-    @media(max-width:640px){ .g-3{grid-template-columns:1fr} }
-    
-    .card{
-      background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px;
-      box-shadow: var(--shadow); animation: fadeInUp .4s ease-out;
+    .loan-kpi-grid {
+      margin-bottom: 24px;
     }
-
-    .title { margin: 0 0 16px 0; font-weight: 700; font-size: 18px; letter-spacing: .2px; }
-    .muted { color: var(--muted); }
-    .tiny { font-size: 12px }
-
-    .btn{
-      display:inline-flex; gap:8px; align-items:center; justify-content:center;
-      border-radius: 12px; padding: 12px 20px; border: 1px solid var(--line);
-      background: var(--surface); color: var(--ink); cursor:pointer; text-decoration:none; font-weight:600;
-      font-size: 14px; transition: transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease;
+    .loan-kpi-grid .card {
+      min-height: 150px;
     }
-    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color:hsl(var(--accent-h) 30% 75% / .6) }
-    .btn.primary{ background: var(--accent); color:#fff; border-color: transparent }
-    .btn.danger{ background: var(--red); color:#fff; border-color: transparent }
-
-    .header {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        gap: 16px;
-        animation: fadeInUp .3s ease-out;
+    .loan-next-card {
+      background: var(--surface);
+      border-style: dashed;
     }
-    .header-title { font-size: 28px; font-weight: 800; margin: 0; }
-    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .kpi-card {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+    .loan-next-card .kpi-sub {
+      font-weight: 600;
     }
-    .kpi-label { font-size: 13px; color: var(--muted); font-weight: 500; }
-    .kpi-value { font-size: 28px; font-weight: 700; line-height: 1.2; }
-    .kpi-value .currency { font-size: 16px; font-weight: 600; color: var(--muted); margin-left: 4px; }
-    .kpi-sub { font-size: 12px; color: var(--muted); }
-    
-    .progress-bar { background: #e2e8f0; border-radius: 8px; height: 16px; overflow: hidden; }
+    .loan-chip[data-tone="info"] {
+      border-color: rgba(59, 130, 246, 0.35);
+      background: rgba(219, 234, 254, 0.85);
+      color: var(--blue);
+    }
+    .loan-chip[data-tone="success"] {
+      border-color: rgba(34, 197, 94, 0.35);
+      background: rgba(236, 253, 245, 0.9);
+      color: var(--green);
+    }
+    .progress-card {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .progress-bar {
+      background: #e2e8f0;
+      border-radius: 999px;
+      height: 18px;
+      overflow: hidden;
+    }
     .progress-bar-inner {
       height: 100%;
-      border-radius: 8px;
+      border-radius: inherit;
       background: linear-gradient(90deg, var(--green), hsl(145, 50%, 60%));
       transition: width 0.5s ease-out;
     }
-    
-    .table-wrapper { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
-    td { vertical-align: middle; }
-    th { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
-    tbody tr:hover { background-color: var(--surface); }
-
-    .modal-overlay{
-      position:fixed; inset:0; background: rgba(15,23,42,.6); display:flex; justify-content:center; align-items:flex-start;
-      padding-top: 5vh; z-index:1000; backdrop-filter: blur(8px); opacity:0; pointer-events:none; transition: opacity .2s ease-out; overflow-y: auto;
+    .loan-chart-grid {
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .modal-overlay.visible{ opacity:1; pointer-events: all }
-    .modal-card{ background: var(--card); padding: 0; border-radius: 16px; box-shadow: var(--shadow-lg); max-width: 520px; width: 92%;
-      transform: scale(.96); transition: transform .2s ease; border:1px solid var(--line); overflow: hidden; margin-bottom: 5vh;
+    @media (max-width: 1024px) {
+      .loan-chart-grid {
+        grid-template-columns: 1fr;
+      }
     }
-    .modal-overlay.visible .modal-card{ transform: scale(1) }
-    .modal-header { padding: 20px; border-bottom: 1px solid var(--line); }
-    .modal-title { font-size: 18px; font-weight: 700; margin: 0; }
-    .modal-body { padding: 20px; }
-    .modal-footer { padding: 16px 20px; border-top: 1px solid var(--line); background: var(--surface); display:flex; justify-content:flex-end; gap:10px }
-    
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
-    .form-input {
-      width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--line);
-      background: var(--surface); font-size: 14px;
+    .table-wrapper {
+      overflow-x: auto;
     }
-    .form-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); }
-    hr.divider { border: none; border-top: 1px solid var(--line); margin: 24px 0; }
-
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+    th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    tbody tr:hover {
+      background: var(--surface);
+    }
     .setup-container {
-        text-align: center;
-        padding: 60px 20px;
+      text-align: center;
+      padding: 60px 20px;
     }
-    .setup-icon { font-size: 48px; margin-bottom: 16px; }
+    .setup-container .setup-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,.6);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 5vh;
+      z-index: 1000;
+      backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease-out;
+      overflow-y: auto;
+    }
+    .modal-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-card {
+      background: var(--card);
+      padding: 0;
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      max-width: 520px;
+      width: 92%;
+      transform: scale(.96);
+      transition: transform .2s ease;
+      border: 1px solid var(--line);
+      overflow: hidden;
+      margin-bottom: 5vh;
+    }
+    .modal-overlay.visible .modal-card {
+      transform: scale(1);
+    }
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+    .modal-body {
+      padding: 20px;
+    }
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-weak);
+    }
+    hr.divider {
+      border: none;
+      border-top: 1px solid var(--line);
+      margin: 24px 0;
+    }
   </style>
 </head>
 <body>
-
-  <div class="wrap">
-    <header class="header">
-      <h1 class="header-title">🏦 Monitor Kredytu</h1>
-      <div class="header-actions">
-        <a href="index.html" class="btn">❮ Powrót</a>
-        <button class="btn primary" id="add-payment-btn" style="display: none;">+ Dodaj spłatę</button>
-        <button class="btn" id="settings-btn" style="display: none;">⚙️ Ustawienia</button>
-      </div>
-    </header>
-
-    <main id="app-container">
-      
-      <div id="setup-container" class="card setup-container" style="display: none;">
-        <div class="setup-icon">📊</div>
-        <h2 class="title">Witaj w module kredytowym!</h2>
-        <p class="muted" style="max-width: 400px; margin: 0 auto 24px;">Aby rozpocząć, wprowadź podstawowe informacje o swoim kredycie. Te dane posłużą do wszystkich dalszych obliczeń.</p>
-        <button class="btn primary" id="setup-loan-btn">Skonfiguruj kredyt</button>
-      </div>
-
-      <div id="dashboard-container" class="grid" style="display: none;">
-        
-        <div class="grid g-3">
-          <div class="card kpi-card">
-            <div class="kpi-label">Pozostało kapitału</div>
-            <div id="capital-remaining" class="kpi-value"></div>
-          </div>
-          <div class="card kpi-card">
-            <div class="kpi-label">Spłacono kapitału</div>
-            <div id="capital-paid" class="kpi-value"></div>
-          </div>
-          <div class="card kpi-card">
-            <div class="kpi-label">Suma nadpłat</div>
-            <div id="overpayments-total" class="kpi-value"></div>
-          </div>
-          <div class="card kpi-card">
-            <div class="kpi-label">Zapłacone odsetki</div>
-            <div id="interest-paid" class="kpi-value"></div>
-          </div>
-          <div class="card kpi-card">
-            <div class="kpi-label">Liczba rat</div>
-            <div id="payments-count" class="kpi-value"></div>
-            <div id="payments-sub" class="kpi-sub"></div>
-          </div>
-           <div class="card kpi-card">
-            <div class="kpi-label">Kredyt skrócony o</div>
-            <div id="time-saved" class="kpi-value"></div>
-          </div>
+  <header class="page-header slim">
+    <div class="wrap">
+      <div>
+        <p class="page-kicker">LifeOS · Finanse</p>
+        <h1 class="page-title">Monitor kredytu</h1>
+        <p class="page-subtitle">Kontroluj harmonogram spłaty, analizuj nadpłaty i patrz jak skraca się czas kredytowania.</p>
+        <div class="chip-set" style="margin-top: 14px;">
+          <span class="chip loan-chip" data-tone="info" id="loan-rate-chip">Stopa bazowa —</span>
+          <span class="chip loan-chip" data-tone="info" id="loan-progress-chip">Postęp spłaty —</span>
         </div>
+      </div>
+      <div class="page-header-actions">
+        <a href="index.html" class="btn soft">← Dashboard</a>
+        <button class="btn" id="settings-btn" style="display:none;">⚙️ Ustawienia</button>
+        <button class="btn primary" id="add-payment-btn" style="display:none;">+ Dodaj spłatę</button>
+      </div>
+    </div>
+  </header>
 
+  <main class="wrap">
+    <div id="setup-container" class="card setup-container" style="display: none;">
+      <div class="setup-icon">📊</div>
+      <h2 class="title" style="margin-top: 0;">Witaj w module kredytowym!</h2>
+      <p class="muted" style="max-width: 420px; margin: 0 auto 24px;">Aby rozpocząć, wprowadź podstawowe informacje o swoim kredycie. Te dane posłużą do wszystkich dalszych obliczeń.</p>
+      <button class="btn primary" id="setup-loan-btn">Skonfiguruj kredyt</button>
+    </div>
+
+    <div id="dashboard-container" class="grid" style="display:none;">
+      <div class="grid g-3 loan-kpi-grid">
+        <div class="card kpi-card">
+          <div class="kpi-label">Pozostało kapitału</div>
+          <div id="capital-remaining" class="kpi-value">—</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Spłacono kapitału</div>
+          <div id="capital-paid" class="kpi-value">—</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Suma nadpłat</div>
+          <div id="overpayments-total" class="kpi-value">—</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Zapłacone odsetki</div>
+          <div id="interest-paid" class="kpi-value">—</div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Liczba rat</div>
+          <div id="payments-count" class="kpi-value">—</div>
+          <div id="payments-sub" class="kpi-sub"></div>
+        </div>
+        <div class="card kpi-card">
+          <div class="kpi-label">Kredyt skrócony o</div>
+          <div id="time-saved" class="kpi-value">—</div>
+        </div>
+        <div class="card kpi-card loan-next-card">
+          <div class="kpi-label">Następna rata</div>
+          <div id="next-payment-amount" class="kpi-value">—</div>
+          <div id="next-payment-date" class="kpi-sub"></div>
+          <div id="next-payment-rate" class="tiny muted"></div>
+        </div>
+      </div>
+
+      <div class="card progress-card">
+        <div class="card-header" style="margin-bottom: 0;">
+          <h3 class="card-title">Postęp spłaty kapitału</h3>
+          <span id="progress-percent" style="font-weight: 700;">0%</span>
+        </div>
+        <span id="progress-text" class="tiny muted"></span>
+        <div class="progress-bar">
+          <div id="progress-bar-inner" class="progress-bar-inner" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="loan-chart-grid">
         <div class="card">
-            <h3 class="title">Postęp spłaty kapitału</h3>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <span id="progress-text" class="tiny muted"></span>
-                <span id="progress-percent" style="font-weight: 700;">0%</span>
-            </div>
-            <div class="progress-bar">
-                <div id="progress-bar-inner" class="progress-bar-inner" style="width: 0%;"></div>
-            </div>
+          <h3 class="card-title">Rata i oprocentowanie</h3>
+          <canvas id="capital-chart" style="max-height: 320px;"></canvas>
         </div>
-
-        <div class="grid g-2">
-            <div class="card">
-                <h3 class="title">Rata i oprocentowanie</h3>
-                <canvas id="capital-chart" style="max-height: 300px;"></canvas>
-            </div>
-            <div class="card">
-                <h3 class="title">Struktura spłat</h3>
-                <canvas id="structure-chart" style="max-height: 300px;"></canvas>
-            </div>
-        </div>
-        
         <div class="card">
-            <h3 class="title">Historia spłat</h3>
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Kapitał</th>
-                            <th>Odsetki</th>
-                            <th>Nadpłata</th>
-                            <th>Suma raty</th>
-                            <th>Akcje</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-tbody">
-                    </tbody>
-                </table>
-            </div>
+          <h3 class="card-title">Struktura spłat</h3>
+          <canvas id="structure-chart" style="max-height: 320px;"></canvas>
         </div>
-
       </div>
 
-    </main>
-  </div>
-  
+      <div class="card">
+        <h3 class="card-title">Historia spłat</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Kapitał</th>
+                <th>Odsetki</th>
+                <th>Nadpłata</th>
+                <th>Suma raty</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
   <div id="modal-overlay" class="modal-overlay" role="dialog">
     <div class="modal-card" id="modal-card">
       <div class="modal-header">
@@ -237,8 +293,8 @@
 const STORAGE_KEY = 'lifeos_loan_v1';
 
 const defaultState = {
-  loanDetails: null, // contains totalCapital, startDate, loanTerm, interestRateHistory
-  payments: [], // contains id, date, capital, interest, overpayment
+  loanDetails: null,
+  payments: [],
 };
 
 let state = {};
@@ -247,7 +303,14 @@ let charts = {};
 function $(selector) { return document.querySelector(selector); }
 function $$(selector) { return document.querySelectorAll(selector); }
 
-/* === State Management === */
+const setupContainer = $('#setup-container');
+const dashboardContainer = $('#dashboard-container');
+const rateChip = $('#loan-rate-chip');
+const progressChip = $('#loan-progress-chip');
+const nextPaymentAmountEl = $('#next-payment-amount');
+const nextPaymentDateEl = $('#next-payment-date');
+const nextPaymentRateEl = $('#next-payment-rate');
+
 function loadState() {
   const saved = localStorage.getItem(STORAGE_KEY);
   state = saved ? JSON.parse(saved) : { ...defaultState };
@@ -258,11 +321,10 @@ function saveState() {
 }
 
 function fmt(n) {
-  try { return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(n || 0); } 
+  try { return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(n || 0); }
   catch { return `${(n || 0).toFixed(2)} PLN`; }
 }
 
-/* === Modal Logic === */
 function openModal(title, body, footer) {
   $('#modal-title').textContent = title;
   $('#modal-body').innerHTML = body;
@@ -274,11 +336,10 @@ function closeModal() {
   $('#modal-overlay').classList.remove('visible');
 }
 
-/* === Initial Setup & Settings === */
 function openSetupModal() {
   const loan = state.loanDetails || { interestRateHistory: [] };
   const title = loan.totalCapital ? 'Edytuj dane kredytu' : 'Konfiguracja kredytu';
-  
+
   let historyHTML = loan.interestRateHistory.map(h => `
     <div class="grid g-3" style="align-items: center; gap: 8px; margin-bottom: 8px;" data-id="${h.id}">
       <input type="month" class="form-input" data-field="date" value="${h.date}">
@@ -336,7 +397,7 @@ function saveSetup() {
     alert('Kapitał i okres kredytowania są wymagane!');
     return;
   }
-  
+
   const interestRateHistory = [];
   $$('#interest-history-list > div[data-id]').forEach(row => {
       const date = row.querySelector('[data-field="date"]').value;
@@ -345,22 +406,21 @@ function saveSetup() {
           interestRateHistory.push({ id: row.dataset.id, date, rate });
       }
   });
-  
+
   interestRateHistory.sort((a, b) => a.date.localeCompare(b.date));
-  
-  state.loanDetails = { 
+
+  state.loanDetails = {
       ...state.loanDetails,
-      totalCapital, 
-      loanTerm, 
+      totalCapital,
+      loanTerm,
       startDate: state.loanDetails?.startDate || interestRateHistory[0]?.date + '-01',
-      interestRateHistory 
+      interestRateHistory
   };
   saveState();
   closeModal();
   render();
 }
 
-/* === Payment Entry === */
 function openPaymentModal(paymentId = null) {
     const payment = paymentId ? state.payments.find(p => p.id === paymentId) : null;
     const title = payment ? 'Edytuj spłatę' : 'Dodaj miesięczną spłatę';
@@ -400,19 +460,19 @@ function savePayment(paymentId) {
     const overpayment = parseFloat($('#overpayment').value) || 0;
 
     if (!date || isNaN(capital) || isNaN(interest)) {
-        alert('Data, kapitał i odsetki muszą być poprawnie wypełnione.');
+        alert('Data, kapitał i odsetki są wymagane.');
         return;
     }
-    
+
     if (paymentId) {
         const index = state.payments.findIndex(p => p.id === paymentId);
         if (index > -1) {
             state.payments[index] = { ...state.payments[index], date, capital, interest, overpayment };
         }
     } else {
-        state.payments.push({ id: 'payment_' + Date.now(), date, capital, interest, overpayment });
+        state.payments.push({ id: 'pay_' + Date.now(), date, capital, interest, overpayment });
     }
-    
+
     state.payments.sort((a, b) => a.date.localeCompare(b.date));
     saveState();
     closeModal();
@@ -420,24 +480,21 @@ function savePayment(paymentId) {
 }
 
 function deletePayment(paymentId) {
-    if (confirm('Czy na pewno chcesz usunąć ten wpis?')) {
-        state.payments = state.payments.filter(p => p.id !== paymentId);
-        saveState();
-        closeModal();
-        render();
-    }
+    state.payments = state.payments.filter(p => p.id !== paymentId);
+    saveState();
+    closeModal();
+    render();
 }
 
-/* === Rendering Logic === */
 function render() {
   if (!state.loanDetails) {
-    $('#setup-container').style.display = 'block';
-    $('#dashboard-container').style.display = 'none';
+    setupContainer.style.display = 'block';
+    dashboardContainer.style.display = 'none';
     $('#add-payment-btn').style.display = 'none';
-    $('#settings-btn').style.display = 'none';
+    $('#settings-btn').style.display = 'inline-flex';
   } else {
-    $('#setup-container').style.display = 'none';
-    $('#dashboard-container').style.display = 'grid';
+    setupContainer.style.display = 'none';
+    dashboardContainer.style.display = 'grid';
     $('#add-payment-btn').style.display = 'inline-flex';
     $('#settings-btn').style.display = 'inline-flex';
     renderDashboard();
@@ -452,19 +509,19 @@ function renderDashboard() {
     const totalCapitalPaid = payments.reduce((sum, p) => sum + p.capital, 0) + totalOverpayments;
     const totalInterestPaid = payments.reduce((sum, p) => sum + p.interest, 0);
     const capitalRemaining = loanDetails.totalCapital - totalCapitalPaid;
-    const progress = (totalCapitalPaid / loanDetails.totalCapital) * 100;
+    const progress = Math.max(0, Math.min(100, (totalCapitalPaid / loanDetails.totalCapital) * 100));
 
-    $('#capital-remaining').innerHTML = `${fmt(capitalRemaining)}<span class="currency">PLN</span>`;
+    $('#capital-remaining').innerHTML = `${fmt(Math.max(0, capitalRemaining))}<span class="currency">PLN</span>`;
     $('#capital-paid').innerHTML = `${fmt(totalCapitalPaid)}<span class="currency">PLN</span>`;
     $('#overpayments-total').innerHTML = `${fmt(totalOverpayments)}<span class="currency">PLN</span>`;
     $('#interest-paid').innerHTML = `${fmt(totalInterestPaid)}<span class="currency">PLN</span>`;
-    $('#payments-count').innerHTML = `${payments.length}<span class="currency">z ${loanDetails.loanTerm * 12}</span>`;
-    
+    $('#payments-count').innerHTML = `${payments.length}<span class="currency"> z ${loanDetails.loanTerm * 12}</span>`;
+
     const originalMonths = loanDetails.loanTerm * 12;
     const monthsPaid = payments.length;
     const avgMonthlyPrincipal = monthsPaid > 0 ? payments.reduce((s, p) => s + p.capital, 0) / monthsPaid : 0;
     const projectedMonthsRemaining = avgMonthlyPrincipal > 0 ? capitalRemaining / avgMonthlyPrincipal : Infinity;
-    const monthsSaved = originalMonths - monthsPaid - projectedMonthsRemaining;
+    const monthsSaved = isFinite(projectedMonthsRemaining) ? originalMonths - monthsPaid - projectedMonthsRemaining : 0;
 
     if (monthsSaved > 0) {
         const years = Math.floor(monthsSaved / 12);
@@ -475,12 +532,44 @@ function renderDashboard() {
     }
 
     const projectedEndDate = new Date();
-    projectedEndDate.setMonth(projectedEndDate.getMonth() + projectedMonthsRemaining);
-    $('#payments-sub').textContent = `Nowy przewidywany koniec: ${projectedEndDate.toLocaleDateString('pl-PL', {year: 'numeric', month: 'long'})}`;
-    
+    if (isFinite(projectedMonthsRemaining)) {
+      projectedEndDate.setMonth(projectedEndDate.getMonth() + projectedMonthsRemaining);
+      $('#payments-sub').textContent = `Nowy przewidywany koniec: ${projectedEndDate.toLocaleDateString('pl-PL', {year: 'numeric', month: 'long'})}`;
+    } else {
+      $('#payments-sub').textContent = 'Dodaj więcej spłat, aby zobaczyć prognozę.';
+    }
+
     $('#progress-bar-inner').style.width = `${progress}%`;
     $('#progress-percent').textContent = `${progress.toFixed(2)}%`;
     $('#progress-text').textContent = `${fmt(totalCapitalPaid)} / ${fmt(loanDetails.totalCapital)}`;
+
+    const lastPayment = payments[payments.length - 1];
+    const lastDate = lastPayment ? lastPayment.date : loanDetails.startDate?.slice(0,7);
+    const currentRate = lastDate ? getRateForDate(lastDate, loanDetails.interestRateHistory) : null;
+    rateChip.textContent = currentRate ? `Stopa bazowa ${currentRate.toFixed(2)}%` : 'Stopa bazowa —';
+    rateChip.dataset.tone = 'info';
+
+    progressChip.textContent = `Postęp spłaty ${progress.toFixed(1)}%`;
+    progressChip.dataset.tone = progress >= 50 ? 'success' : 'info';
+
+    const startDate = loanDetails.startDate ? new Date(loanDetails.startDate) : new Date();
+    const nextDate = new Date(startDate);
+    nextDate.setMonth(nextDate.getMonth() + payments.length);
+    const nextDateLabel = nextDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+
+    const lastThree = payments.slice(-3);
+    let avgInstallment = 0;
+    if (lastThree.length) {
+      avgInstallment = lastThree.reduce((sum, p) => sum + p.capital + p.interest + (p.overpayment || 0), 0) / lastThree.length;
+    } else if (payments.length) {
+      const p = payments[payments.length - 1];
+      avgInstallment = p.capital + p.interest + (p.overpayment || 0);
+    }
+
+    nextPaymentAmountEl.textContent = avgInstallment ? fmt(avgInstallment) : '—';
+    nextPaymentDateEl.textContent = payments.length ? `Planowany termin: ${nextDateLabel}` : 'Dodaj pierwszą ratę, aby rozpocząć monitoring.';
+    const rateForNext = getRateForDate(`${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2,'0')}`, loanDetails.interestRateHistory);
+    nextPaymentRateEl.textContent = rateForNext ? `Oprocentowanie w tym okresie: ${rateForNext.toFixed(2)}%` : '';
 }
 
 function renderHistoryTable() {
@@ -549,7 +638,7 @@ function renderCharts() {
 
   const { payments, loanDetails } = state;
   const paymentLabels = payments.map(p => new Date(p.date+'-02').toLocaleDateString('pl-PL', {month:'short', year:'2-digit'}));
-  
+
   const interestRateData = payments.map(p => getRateForDate(p.date, loanDetails.interestRateHistory));
 
   const greenColor = getComputedStyle(document.body).getPropertyValue('--green').trim();
@@ -561,77 +650,98 @@ function renderCharts() {
     data: {
       labels: paymentLabels,
       datasets: [
-        { type: 'line', label: 'Oprocentowanie', data: interestRateData, borderColor: blueColor, yAxisID: 'yRate', tension: 0.1, pointRadius: 3, pointBackgroundColor: blueColor },
-        { label: 'Kapitał', data: payments.map(p => p.capital + (p.overpayment || 0)), backgroundColor: greenColor, borderRadius: 4, order: 2 },
-        { label: 'Odsetki', data: payments.map(p => p.interest), backgroundColor: orangeColor, borderRadius: 4, order: 3 },
+        {
+          type: 'bar',
+          label: 'Kapitał',
+          data: payments.map(p => p.capital + (p.overpayment || 0)),
+          backgroundColor: greenColor,
+          borderRadius: 8,
+          order: 1
+        },
+        {
+          type: 'bar',
+          label: 'Odsetki',
+          data: payments.map(p => p.interest),
+          backgroundColor: orangeColor,
+          borderRadius: 8,
+          order: 1
+        },
+        {
+          type: 'line',
+          label: 'Oprocentowanie (%)',
+          data: interestRateData,
+          borderColor: blueColor,
+          borderWidth: 2,
+          yAxisID: 'y1',
+          tension: 0.25,
+          order: 0
+        }
       ]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } },
       scales: {
-        x: { stacked: true, grid: { display: false } },
-        y: { stacked: true, grid: { color: getComputedStyle(document.body).getPropertyValue('--line').trim() }, ticks: { callback: (value) => fmt(value).replace(/\sPLN/,'') } },
-        yRate: { type: 'linear', position: 'right', grid: { display: false }, ticks: { callback: (value) => `${value}%` } }
-      },
-      plugins: {
-        legend: { position: 'bottom' },
-        tooltip: { callbacks: { label: (context) => `${context.dataset.label}: ${context.dataset.type === 'line' ? context.raw+'%' : fmt(context.raw)}` } }
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(226, 232, 240, 0.4)' },
+          ticks: { callback: value => fmt(value) }
+        },
+        y1: {
+          position: 'right',
+          beginAtZero: true,
+          grid: { drawOnChartArea: false },
+          ticks: { callback: value => `${value}%` }
+        }
       }
     }
   });
-
-  const totalCapitalPaid = payments.reduce((sum, p) => sum + p.capital + (p.overpayment || 0), 0);
-  const totalInterestPaid = payments.reduce((sum, p) => sum + p.interest, 0);
-  const totalPaid = totalCapitalPaid + totalInterestPaid;
 
   charts.structure = new Chart(structureCtx, {
     type: 'doughnut',
     data: {
-      labels: ['Spłacony kapitał', 'Zapłacone odsetki'],
-      datasets: [{ data: [totalCapitalPaid, totalInterestPaid], backgroundColor: [greenColor, orangeColor], borderColor: getComputedStyle(document.body).getPropertyValue('--card').trim(), borderWidth: 5, hoverOffset: 8 }]
+      labels: ['Kapitał', 'Odsetki', 'Nadpłaty'],
+      datasets: [{
+        data: [
+          payments.reduce((sum, p) => sum + p.capital, 0),
+          payments.reduce((sum, p) => sum + p.interest, 0),
+          payments.reduce((sum, p) => sum + (p.overpayment || 0), 0)
+        ],
+        backgroundColor: [greenColor, orangeColor, blueColor],
+        borderWidth: 0,
+        hoverOffset: 12
+      }]
     },
-    plugins: [ChartDataLabels, doughnutCenterText],
     options: {
-      responsive: true, maintainAspectRatio: false,
-      cutout: '65%',
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        datalabels: {
-          formatter: (value, ctx) => {
-            if (totalPaid === 0) return '0%';
-            const percentage = ((value / totalPaid) * 100).toFixed(1) + '%';
-            return ctx.dataset.data[ctx.dataIndex] > 0 ? percentage : '';
-          },
-          color: '#fff',
-          font: { weight: 'bold', size: 12 },
-        },
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (context) => {
-                const label = context.label || '';
-                const value = context.raw || 0;
-                const percentage = totalPaid > 0 ? ((value / totalPaid) * 100).toFixed(2) : 0;
-                return `${label}: ${fmt(value)} (${percentage}%)`;
-            }
-          }
-        },
+        legend: { position: 'bottom' }
       }
-    }
+    },
+    plugins: [doughnutCenterText]
   });
 }
 
-/* === Event Listeners & Boot === */
-function init() {
-  loadState();
-  render();
-  $('#setup-loan-btn').addEventListener('click', openSetupModal);
-  $('#settings-btn').addEventListener('click', openSetupModal);
-  $('#add-payment-btn').addEventListener('click', () => openPaymentModal(null));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-  $('#modal-overlay').addEventListener('click', (e) => { if (e.target === $('#modal-overlay')) closeModal(); });
-}
-window.addEventListener('load', init);
+$('#modal-overlay').addEventListener('click', (event) => {
+  if (event.target === event.currentTarget) {
+    closeModal();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeModal();
+  }
+});
+
+$('#setup-loan-btn').addEventListener('click', openSetupModal);
+$('#settings-btn').addEventListener('click', openSetupModal);
+$('#add-payment-btn').addEventListener('click', () => openPaymentModal());
+
+loadState();
+render();
 </script>
 </body>
 </html>
-

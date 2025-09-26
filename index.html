@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LifeOS — Dashboard</title>
+  <link rel="stylesheet" href="assets/app.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -365,6 +366,10 @@ function num(s) {
   const n = Number(normalized.replace(/[^0-9.\-]/g, ''));
   return Number.isFinite(n) ? n : 0;
 }
+function safeParse(raw, fallback = null){
+  if(!raw) return fallback;
+  try { return JSON.parse(raw); } catch { return fallback; }
+}
 function monthKey(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function parseDate(dateString){ if(!dateString) return null; const p = dateString.split('-').map(Number); return new Date(Date.UTC(p[0], p[1]-1, p[2])); }
 function getWeekNumber(d){ d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7)); const yStart=new Date(Date.UTC(d.getUTCFullYear(),0,1)); return [d.getUTCFullYear(), Math.ceil((((d - yStart)/86400000)+1)/7)] }
@@ -578,8 +583,9 @@ function renderKPIData(){
 
   // --- Budget KPI ---
   const budgetRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
-  if(budgetRaw){
-    const bState = JSON.parse(budgetRaw).modules.budget;
+  const budgetData = safeParse(budgetRaw);
+  const bState = budgetData?.modules?.budget;
+  if(bState){
     const ym = monthKey();
     let budgetHTML = `
       <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
@@ -633,8 +639,9 @@ function renderKPIData(){
 
   // --- Fuel KPI ---
   const fuelRaw = localStorage.getItem(FUEL_STORAGE_KEY);
-  if(fuelRaw){
-    const f = JSON.parse(fuelRaw);
+  const fuelData = safeParse(fuelRaw);
+  if(fuelData?.transactions){
+    const f = fuelData;
     const bal = f.transactions.reduce((a,tx)=> a+num(tx.amount),0);
     const balanceClass = bal >= 0 ? 'value-ok' : 'value-bad';
     
@@ -657,8 +664,9 @@ function renderKPIData(){
 
   // --- Tasks KPI ---
   const tasksRaw = localStorage.getItem(TASKS_STORAGE_KEY);
-  if(tasksRaw){
-    const t = JSON.parse(tasksRaw);
+  const tasksData = safeParse(tasksRaw);
+  if(tasksData?.tasks){
+    const t = tasksData;
     const today = new Date(); today.setUTCHours(0,0,0,0);
     const activeTasks = t.tasks.filter(x=> x.status!=='done');
     const overdue = activeTasks.filter(x => x.dueDate && parseDate(x.dueDate) < today).length;
@@ -691,8 +699,9 @@ function renderKPIData(){
 
   // --- Progress KPI ---
   const trRaw = localStorage.getItem(TRAININGS_STORAGE_KEY);
-  if(trRaw){
-    const st = JSON.parse(trRaw);
+  const trainingData = safeParse(trRaw);
+  if(trainingData){
+    const st = trainingData;
     const [y,w] = getWeekNumber(new Date());
     const yData = st[y] || {};
     const wd = yData[w];
@@ -724,8 +733,9 @@ function renderKPIData(){
 
   // --- House KPI ---
   const houseRaw = localStorage.getItem(HOUSE_STORAGE_KEY);
-  if(houseRaw){
-    const hState = JSON.parse(houseRaw);
+  const houseData = safeParse(houseRaw);
+  if(houseData){
+    const hState = houseData;
     const { tasks, expenses, project } = hState;
     const completedTasksProgress = tasks.map(t => (t.progress || 0));
     const totalProgress = tasks.length > 0 ? completedTasksProgress.reduce((a,b) => a + b, 0) / tasks.length : 0;
@@ -749,8 +759,9 @@ function renderKPIData(){
 
   // --- Loan KPI ---
   const loanRaw = localStorage.getItem(LOAN_STORAGE_KEY);
-  if(loanRaw){
-    const lState = JSON.parse(loanRaw);
+  const loanData = safeParse(loanRaw);
+  if(loanData){
+    const lState = loanData;
     if (lState.loanDetails) {
       const { loanDetails, payments } = lState;
       const totalOverpayments = payments.reduce((sum, p) => sum + (p.overpayment || 0), 0);

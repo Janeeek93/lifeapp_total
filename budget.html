@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LifeOS — Budżet (ulepszona wersja)</title>
+  <link rel="stylesheet" href="assets/app.css">
   <style>
     :root{
       --bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
@@ -128,25 +129,34 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row">
-      <div class="row" style="gap:10px">
-        <a href="./index.html" class="btn soft" style="text-decoration: none;">← Powrót</a>
-        <div>
-          <div style="font-weight:800">Mój Budżet</div>
-          <div class="muted" style="font-size:12px">Wersja lokalna</div>
+  <header class="page-header slim">
+    <div class="wrap">
+      <div>
+        <p class="page-kicker">LifeOS · Finanse</p>
+        <h1 class="page-title">Budżet domowy</h1>
+        <p class="page-subtitle">Planowanie, analityka i kontrola wydatków w jednym miejscu.</p>
+        <div class="chip-set" style="margin-top: 12px;">
+          <span class="chip" id="budget-balance-chip">Saldo: —</span>
+          <span class="chip" id="budget-trend-chip">Trend: —</span>
         </div>
       </div>
-      <div class="row" style="gap:8px">
-        <button class="btn soft" id="prevMonthBtn">←</button>
-        <span class="pill" id="workingMonth">YYYY-MM</span>
-        <button class="btn soft" id="nextMonthBtn">→</button>
-        <button class="btn ghost" id="exportBtn">⬇️ Eksport JSON</button>
-        <button class="btn ghost" id="importBtn">⬆️ Import JSON</button>
-        <input type="file" id="importFile" accept="application/json" style="display:none" />
+      <div class="page-header-actions" style="flex-direction: column; align-items: flex-end; gap: 12px;">
+        <div class="toolbar-actions" style="gap: 8px;">
+          <a href="index.html" class="btn soft">← Dashboard</a>
+          <button class="btn soft" id="prevMonthBtn">←</button>
+          <span class="pill" id="workingMonth">YYYY-MM</span>
+          <button class="btn soft" id="nextMonthBtn">→</button>
+        </div>
+        <div class="toolbar-actions" style="gap: 8px;">
+          <button class="btn ghost" id="exportBtn">⬇️ Eksport JSON</button>
+          <button class="btn ghost" id="importBtn">⬆️ Import JSON</button>
+          <input type="file" id="importFile" accept="application/json" style="display:none" />
+        </div>
       </div>
     </div>
+  </header>
 
+  <div class="wrap">
     <div class="tabs" style="margin-top:12px">
       <button class="tab active" data-tab="dashboard">Dashboard</button>
       <button class="tab" data-tab="overview">Przegląd</button>
@@ -1329,6 +1339,12 @@
     }, 0);
     const remain = incSum - fixSum - variableSpent - savingsTransfers;
 
+    const balanceChip = document.getElementById('budget-balance-chip');
+    if (balanceChip) {
+      balanceChip.textContent = `Saldo: ${fmt(remain, state.currency)}`;
+      balanceChip.dataset.tone = remain >= 0 ? 'success' : 'danger';
+    }
+
     document.getElementById('dash-remaining').textContent=fmt(remain, state.currency);
     document.getElementById('dash-daily-budget').textContent=fmt(dailyBudget, state.currency);
 
@@ -1346,6 +1362,20 @@
     const avgDaily = (daysElapsed > 0 ? (spentSoFar / daysElapsed) : 0);
     document.getElementById('dash-avg-daily').textContent=fmt(avgDaily, state.currency);
     document.getElementById('dash-avg-trend').textContent = avgDaily <= dailyBudget ? '👍 poniżej planu' : '👎 powyżej planu';
+
+    const trendChip = document.getElementById('budget-trend-chip');
+    if (trendChip) {
+      if (daysElapsed > 0) {
+        const diff = dailyBudget - avgDaily;
+        trendChip.textContent = diff >= 0
+          ? `W budżecie: ${fmt(diff, state.currency)}/dzień`
+          : `Przekroczenie: ${fmt(Math.abs(diff), state.currency)}/dzień`;
+        trendChip.dataset.tone = diff >= 0 ? 'success' : 'danger';
+      } else {
+        trendChip.textContent = 'Brak danych z bieżącego miesiąca';
+        trendChip.dataset.tone = 'info';
+      }
+    }
 
     // Heatmap
     const cal=document.getElementById('daily-spending-calendar'); cal.innerHTML='';

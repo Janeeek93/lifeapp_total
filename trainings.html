@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LifeOS – Trainings</title>
+  <link rel="stylesheet" href="assets/app.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -669,8 +670,25 @@ a { color: inherit; text-decoration: none; }
   </style>
 </head>
 <body>
+  <header class="page-header slim">
+    <div class="wrap">
+      <div>
+        <p class="page-kicker">LifeOS · Aktywność</p>
+        <h1 class="page-title">Panel treningów</h1>
+        <p class="page-subtitle">Plan tygodniowy, progres i integracje celów.</p>
+        <div class="chip-set" style="margin-top: 12px;">
+          <span class="chip" id="trainings-progress-chip">Postęp tygodnia —</span>
+          <span class="chip" id="trainings-streak-chip">Tygodnie 100% —</span>
+        </div>
+      </div>
+      <div class="page-header-actions">
+        <a href="index.html" class="btn soft">← Dashboard</a>
+      </div>
+    </div>
+  </header>
+
 <div class="wrap">
-  <header class="page-header card">
+  <header class="card trainings-panel-header">
     <div class="page-header-top">
       <div class="title-block">
         <span class="eyebrow">Program treningowy</span>
@@ -680,7 +698,6 @@ a { color: inherit; text-decoration: none; }
         </div>
       </div>
       <div class="page-header-actions">
-        <a href="./index.html" class="btn ghost"><i data-lucide="arrow-left" class="icon"></i>Powrót</a>
         <button id="today-month-btn" class="btn soft"><i data-lucide="calendar" class="icon"></i>Dzisiaj</button>
       </div>
     </div>
@@ -1494,6 +1511,23 @@ function render() {
 
 function renderHeader(monthStats, weekStats, upcomingWindow, yearStats) {
   const monthLabel = formatMonth(currentMonth);
+  const progressChip = document.getElementById('trainings-progress-chip');
+  if (progressChip) {
+    const percent = Number(weekStats.averageGoalPercent || 0);
+    progressChip.textContent = `Postęp tygodnia: ${percent}%`;
+    progressChip.dataset.tone = percent >= 80 ? 'success' : percent >= 50 ? 'info' : 'warning';
+  }
+  const streakChip = document.getElementById('trainings-streak-chip');
+  if (streakChip) {
+    if (yearStats && yearStats.totalWeeks > 0) {
+      streakChip.textContent = `Tygodnie 100%: ${yearStats.completedWeeks}/${yearStats.totalWeeks}`;
+      streakChip.dataset.tone = yearStats.percent >= 60 ? 'success' : yearStats.percent >= 30 ? 'info' : 'warning';
+    } else {
+      streakChip.textContent = 'Tygodnie 100%: 0';
+      streakChip.dataset.tone = 'info';
+    }
+  }
+
   document.getElementById('header-month-chip').textContent = monthLabel;
   document.getElementById('current-month-label').textContent = monthLabel;
   document.getElementById('current-month-range').textContent = `${formatRange(monthStats.range.start, monthStats.range.end)} ${currentMonth.getFullYear()}`;
