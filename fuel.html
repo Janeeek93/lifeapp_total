@@ -315,7 +315,7 @@ function render() {
     const totalBalance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
     balanceEl.textContent = fmt(totalBalance);
     balanceEl.className = `value ${totalBalance >= 0 ? 'ok' : 'bad'}`;
-    balanceInfoEl.textContent = totalBalance >= 0 ? 'Firma jest Ci winna pieniądze' : 'Musisz zwrócić pieniądze firmie';
+    balanceInfoEl.textContent = totalBalance >= 0 ? 'Masz jeszcze środki z zaliczki do wykorzystania' : 'Musisz zwrócić pieniądze firmie';
     
     const lastInvoice = state.transactions.find(tx => tx.type === 'invoice' && tx.date);
     if (lastInvoice) {
@@ -388,10 +388,24 @@ function renderInsightsSection() {
 
     const invoices = state.transactions.filter(tx => tx.type === 'invoice');
     const advances = state.transactions.filter(tx => tx.type === 'advance');
-    const totalCost = invoices.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
-    const totalLiters = invoices.reduce((sum, tx) => sum + (tx.liters || 0), 0);
-    const avgPrice = totalLiters > 0 ? totalCost / totalLiters : 0;
-    const avgInvoice = invoices.length > 0 ? totalCost / invoices.length : 0;
+    const lastYearThreshold = (() => {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setFullYear(d.getFullYear() - 1);
+        return d;
+    })();
+
+    const invoicesLastYear = invoices.filter(tx => {
+        if (!tx.date) return false;
+        const parsed = new Date(tx.date);
+        if (Number.isNaN(parsed.valueOf())) return false;
+        return parsed >= lastYearThreshold;
+    });
+
+    const costLastYear = invoicesLastYear.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+    const litersLastYear = invoicesLastYear.reduce((sum, tx) => sum + (tx.liters || 0), 0);
+    const avgPrice = litersLastYear > 0 ? costLastYear / litersLastYear : 0;
+    const avgInvoice = invoicesLastYear.length > 0 ? costLastYear / invoicesLastYear.length : 0;
 
     const last30Threshold = new Date();
     last30Threshold.setDate(last30Threshold.getDate() - 30);
@@ -422,8 +436,8 @@ function renderInsightsSection() {
     const cards = [
         {
             label: 'Średnia cena za litr',
-            value: totalLiters > 0 ? fmt(avgPrice, 'PLN/L') : '—',
-            note: totalLiters > 0 ? `${totalLiters.toFixed(1)} L w ${invoices.length} fakturach` : 'Brak danych o litrach'
+            value: litersLastYear > 0 ? fmt(avgPrice, 'PLN/L') : '—',
+            note: litersLastYear > 0 ? `${litersLastYear.toFixed(1)} L w ${invoicesLastYear.length} fakturach (12 mies.)` : 'Brak danych z ostatniego roku'
         },
         {
             label: 'Koszt ostatnich 30 dni',
@@ -442,13 +456,13 @@ function renderInsightsSection() {
         },
         {
             label: 'Śr. kwota faktury',
-            value: invoices.length ? fmt(avgInvoice) : '—',
-            note: advances.length ? `${advances.length} zaliczek na ${fmt(advancesValue)}` : 'Brak zaliczek'
+            value: invoicesLastYear.length ? fmt(avgInvoice) : '—',
+            note: invoicesLastYear.length ? `${invoicesLastYear.length} faktur z ostatnich 12 miesięcy` : (advances.length ? `${advances.length} zaliczek na ${fmt(advancesValue)}` : 'Brak danych z ostatniego roku')
         },
         {
             label: 'Saldo rozliczeń',
             value: fmt(balance),
-            note: balance >= 0 ? 'Firma jest Ci winna środki' : 'Do zwrotu dla firmy'
+            note: balance >= 0 ? 'Pozostałe środki z zaliczki' : 'Do zwrotu dla firmy'
         }
     ];
 
