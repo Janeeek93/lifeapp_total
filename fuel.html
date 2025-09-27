@@ -4,123 +4,225 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>LifeOS — Paliwo</title>
+  <link rel="stylesheet" href="assets/styles.css">
   <style>
-    :root{
-      --bg:#f8fafc;--card:#fff;--ink:#0f172a;--muted:#64748b;--line:#e2e8f0;
-      --green:#059669;--red:#be123c;--orange:#ea580c;--blue:#0369a1
+    .fuel-insights-grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto}
-    .wrap{max-width:900px;margin:0 auto;padding:24px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-    .row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
-    .muted{color:var(--muted)}
-    .title{margin:0 0 8px 0;font-weight:700}
-    .btn{display:inline-flex;gap:8px;align-items:center;border-radius:12px;padding:8px 12px;border:1px solid #0f172a;background:#0f172a;color:#fff;cursor:pointer; text-decoration: none;}
-    .btn.soft{background:#f1f5f9;border-color:#e2e8f0;color:#0f172a}
-    .btn.danger{background:#ffe4e6;border-color:#fecdd3;color:#b91c1c}
-    input,select{border:1px solid var(--line);border-radius:10px;padding:8px;background:#fff;color:#0f172a;width:100%}
-    .grid{display:grid;gap:16px}
-    .g-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-    @media(max-width:900px){.g-2{grid-template-columns:1fr}}
-    .g-4{grid-template-columns:repeat(4,minmax(0,1fr))}
-    @media(max-width:900px){.g-4{grid-template-columns:1fr 1fr}}
-    .ok{color:var(--green)}.bad{color:var(--red)}
-    .stat-card{background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px; text-align: center;}
-    .big-number{font-weight:800;font-size:32px}
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:8px;border-top:1px solid var(--line);text-align:left;vertical-align:middle}
-    .chart-box{height:240px; margin-top: 16px;}
+
+    .insight-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .insight-card .label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 600;
+    }
+
+    .insight-card .value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .insight-card .note {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .fuel-form-grid {
+      align-items: flex-end;
+    }
+
+    .fuel-form-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .fuel-analytics-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .summary-delta {
+      font-weight: 600;
+    }
+
+    .summary-delta.up {
+      color: var(--red);
+    }
+
+    .summary-delta.down {
+      color: var(--green);
+    }
+
+    .summary-delta.flat {
+      color: var(--muted);
+    }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <div class="row">
-      <div class="row" style="gap:10px">
-        <a href="./index.html" class="btn soft" style="text-decoration: none;">← Powrót</a>
-        <div>
-          <div style="font-weight:800">Moduł Paliwowy</div>
-          <div class="muted" style="font-size:12px">Rozliczenia z firmą</div>
+<body class="module-shell">
+  <section class="module-hero">
+    <div class="wrap module-hero-inner">
+      <div class="module-hero-top">
+        <div class="module-hero-meta">
+          <a href="index.html" class="back-link">← Powrót</a>
+          <div class="module-title-block">
+            <div class="module-eyebrow">Finanse</div>
+            <h1 class="module-title">Moduł paliwowy</h1>
+            <p class="module-subtitle">Rozliczaj wydatki służbowe i prywatne tankowania w jednym miejscu.</p>
+          </div>
+        </div>
+        <div class="module-hero-actions">
+          <button id="import-csv-btn" class="btn soft">Importuj z CSV</button>
+          <input type="file" id="csv-file-input" accept=".csv" style="display:none;">
+          <button id="export-csv-btn" class="btn soft">Eksportuj do CSV</button>
+          <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
         </div>
       </div>
-      <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
-    </div>
-
-    <div class="grid g-2" style="margin-top:16px;">
-        <div class="stat-card">
-            <div class="muted">Aktualne Saldo</div>
-            <div id="fuel-balance" class="big-number">0,00 PLN</div>
-            <div class="muted" id="balance-info"></div>
+      <div class="module-hero-stats" id="fuel-hero-glance">
+        <div class="module-hero-stat neutral">
+          <span class="emoji">⛽</span>
+          <div class="stat-body">
+            <span class="label">Śr. cena (12 mies.)</span>
+            <span class="value" id="fuel-avg-price">—</span>
+            <span class="note" id="fuel-avg-price-note">Brak danych</span>
+          </div>
         </div>
-        <div id="last-invoice-card" class="stat-card"></div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-        <h3 class="title" id="form-title">Dodaj Transakcję</h3>
-        <div class="grid g-4">
-            <input type="hidden" id="tx-id">
-            <input type="date" id="tx-date">
-            <select id="tx-type">
-                <option value="invoice">Faktura (koszt)</option>
-                <option value="advance">Zaliczka (wpływ)</option>
-            </select>
-            <input type="text" id="tx-ref" placeholder="Nr faktury / Opis">
-            <input type="text" id="tx-liters" placeholder="Litry (opcjonalnie)" inputmode="decimal">
-            <input type="text" id="tx-amount" placeholder="Kwota" inputmode="decimal" required>
-            <div style="grid-column: 1 / -1; display:flex; gap: 8px; justify-content:flex-end;">
-              <button id="cancel-edit-btn" class="btn soft" style="display:none;">Anuluj</button>
-              <button id="add-tx-btn" class="btn">Dodaj</button>
-            </div>
+        <div class="module-hero-stat positive" id="fuel-balance-chip">
+          <span class="emoji">💼</span>
+          <div class="stat-body">
+            <span class="label">Saldo zaliczki</span>
+            <span class="value" id="fuel-balance-value">0,00 PLN</span>
+            <span class="note" id="balance-info">—</span>
+          </div>
         </div>
+        <div class="module-hero-stat neutral" id="fuel-last-invoice-chip">
+          <span class="emoji">🧾</span>
+          <div class="stat-body">
+            <span class="label">Ostatnia faktura</span>
+            <span class="value" id="fuel-last-invoice-value">—</span>
+            <span class="note" id="fuel-last-invoice-note">Brak faktur w historii</span>
+          </div>
+        </div>
+      </div>
     </div>
-    
-    <div class="card" style="margin-top:16px;">
-        <div class="row">
-          <h3 class="title">Analityka</h3>
-          <select id="analytics-period-filter" style="width:auto;">
-              <option value="12" selected>Ostatni rok</option>
-              <option value="24">Ostatnie 2 lata</option>
-              <option value="36">Ostatnie 3 lata</option>
-              <option value="all">Wszystkie dane</option>
+  </section>
+
+  <main class="module-content">
+    <div class="wrap">
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title" id="form-title">Dodaj transakcję</h2>
+          <span class="tiny muted">Obsługujemy faktury i zaliczki firmowe</span>
+        </div>
+        <div class="grid g-4 fuel-form-grid">
+          <input type="hidden" id="tx-id">
+          <input type="date" id="tx-date">
+          <select id="tx-type">
+            <option value="invoice">Faktura (koszt)</option>
+            <option value="advance">Zaliczka (wpływ)</option>
           </select>
+          <input type="text" id="tx-ref" placeholder="Nr faktury / Opis">
+          <input type="text" id="tx-liters" placeholder="Litry (opcjonalnie)" inputmode="decimal">
+          <input type="text" id="tx-amount" placeholder="Kwota" inputmode="decimal" required>
+          <div class="fuel-form-actions">
+            <button id="cancel-edit-btn" class="btn soft" style="display:none;">Anuluj</button>
+            <button id="add-tx-btn" class="btn primary">Dodaj</button>
+          </div>
         </div>
-        <div class="grid" style="margin-top:12px;">
-            <div class="card">
-                <div class="title">Miesięczne Koszty i Liczba Tankowań</div>
-                <div class="chart-box"><canvas id="monthly-costs-chart"></canvas></div>
-            </div>
-            <div class="card">
-                <div class="title">Średnia Cena za Litr</div>
-                <div class="chart-box"><canvas id="avg-price-chart"></canvas></div>
-            </div>
-        </div>
-    </div>
+      </section>
 
-    <div class="card" style="margin-top:16px;">
-        <div class="row">
-            <h3 class="title">Historia Transakcji</h3>
-            <div style="display:flex; gap: 8px;">
-                <button id="import-csv-btn" class="btn soft">Importuj z CSV</button>
-                <input type="file" id="csv-file-input" accept=".csv" style="display:none;">
-                <button id="export-csv-btn" class="btn soft">Eksportuj do CSV</button>
-            </div>
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Historia transakcji</h2>
+          <span class="tiny muted">Kliknij wpis, aby edytować lub usuń w przypadku pomyłki</span>
         </div>
-        <table>
+        <div class="table-wrapper">
+          <table>
             <thead>
-                <tr>
-                    <th>Data</th>
-                    <th>Typ</th>
-                    <th>Opis/Nr faktury</th>
-                    <th>Litry</th>
-                    <th>Cena/l</th>
-                    <th>Kwota</th>
-                    <th></th>
-                </tr>
+              <tr>
+                <th>Data</th>
+                <th>Typ</th>
+                <th>Opis/Nr faktury</th>
+                <th>Litry</th>
+                <th>Cena/l</th>
+                <th>Kwota</th>
+                <th>Akcje</th>
+              </tr>
             </thead>
             <tbody id="history-tbody"></tbody>
-        </table>
+          </table>
+        </div>
+      </section>
+
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Kluczowe wnioski</h2>
+          <span class="tiny muted">Aktualizowane automatycznie na podstawie historii tankowań</span>
+        </div>
+        <div id="insights-grid" class="fuel-insights-grid"></div>
+      </section>
+
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Podsumowanie miesięczne</h2>
+          <p class="tiny muted" id="monthly-summary-caption">Ostatnie 6 miesięcy</p>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Miesiąc</th>
+                <th>Faktury</th>
+                <th>Litry</th>
+                <th>Śr. cena</th>
+                <th>Zmiana m/m</th>
+              </tr>
+            </thead>
+            <tbody id="monthly-summary-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card card-section">
+        <div class="section-heading">
+          <h2 class="title">Analityka</h2>
+          <select id="analytics-period-filter" style="width:auto;">
+            <option value="12" selected>Ostatni rok</option>
+            <option value="24">Ostatnie 2 lata</option>
+            <option value="36">Ostatnie 3 lata</option>
+            <option value="all">Wszystkie dane</option>
+          </select>
+        </div>
+        <div class="fuel-analytics-grid">
+          <article class="chart-card">
+            <h3 class="title">Miesięczne koszty i liczba tankowań</h3>
+            <div class="chart-area"><canvas id="monthly-costs-chart"></canvas></div>
+          </article>
+          <article class="chart-card">
+            <h3 class="title">Średnia cena za litr</h3>
+            <div class="chart-area"><canvas id="avg-price-chart"></canvas></div>
+          </article>
+        </div>
+      </section>
     </div>
-  </div>
+  </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -150,9 +252,42 @@ function num(s){
     return Number.isFinite(n) ? n : 0;
 }
 
+function normalizeTransactions(list){
+    if(!Array.isArray(list)) return [];
+    return list.map(tx => {
+        if(!tx) return null;
+        const normalized = { ...tx };
+        const rawAmount = num(tx.amount ?? tx.value);
+        let type = (tx.type || '').toLowerCase();
+        if(type !== 'invoice' && type !== 'advance') {
+            type = rawAmount >= 0 ? 'advance' : 'invoice';
+        }
+        normalized.type = type;
+        normalized.amount = type === 'invoice' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
+        const litersSource = tx.liters ?? tx.details?.liters ?? tx.volume;
+        const litersValue = num(litersSource);
+        normalized.liters = type === 'invoice' && litersValue > 0 ? litersValue : null;
+        if(!normalized.ref && tx.reference) normalized.ref = tx.reference;
+        if(!normalized.id){
+            const seed = `${tx.date || Date.now()}_${Math.random().toString(16).slice(2,8)}`;
+            normalized.id = `tx_${seed}`;
+        }
+        return normalized;
+    }).filter(Boolean);
+}
+
 function loadState(){
-    const raw = localStorage.getItem(FUEL_STORAGE_KEY);
-    if(raw) return JSON.parse(raw);
+    try {
+        const raw = localStorage.getItem(FUEL_STORAGE_KEY);
+        if(!raw) return { transactions: [] };
+        const parsed = JSON.parse(raw);
+        if(parsed && typeof parsed === 'object'){
+            const transactions = Array.isArray(parsed.transactions) ? parsed.transactions : [];
+            return { ...parsed, transactions: normalizeTransactions(transactions) };
+        }
+    } catch {
+        return { transactions: [] };
+    }
     return { transactions: [] };
 }
 
@@ -171,6 +306,77 @@ function updateKPIs(state) {
 
 let state = loadState();
 
+function computeFuelMetrics(transactions = []) {
+    const list = Array.isArray(transactions) ? [...transactions] : [];
+    const invoices = list.filter(tx => tx.type === 'invoice' && tx.date);
+    const advances = list.filter(tx => tx.type === 'advance');
+    const totalBalance = list.reduce((acc, tx) => acc + (tx.amount || 0), 0);
+
+    const sortedInvoices = invoices.slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const lastInvoice = sortedInvoices[0] || null;
+
+    const now = new Date();
+    const lastYearThreshold = new Date(now);
+    lastYearThreshold.setFullYear(lastYearThreshold.getFullYear() - 1);
+    const invoicesLastYear = sortedInvoices.filter(tx => {
+        if (!tx.date) return false;
+        const parsed = new Date(tx.date);
+        return !Number.isNaN(parsed.valueOf()) && parsed >= lastYearThreshold;
+    });
+    const costLastYear = invoicesLastYear.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
+    const litersLastYear = invoicesLastYear.reduce((sum, tx) => sum + (tx.liters || 0), 0);
+    const avgPrice12m = litersLastYear > 0 ? costLastYear / litersLastYear : 0;
+    const avgInvoice12m = invoicesLastYear.length ? costLastYear / invoicesLastYear.length : 0;
+
+    const last30Threshold = new Date(now);
+    last30Threshold.setDate(last30Threshold.getDate() - 30);
+    const last30Invoices = sortedInvoices.filter(tx => {
+        if (!tx.date) return false;
+        const parsed = new Date(tx.date);
+        return !Number.isNaN(parsed.valueOf()) && parsed >= last30Threshold;
+    });
+    const last30Cost = last30Invoices.reduce((sum, tx) => sum + Math.abs(tx.amount || 0), 0);
+
+    const bestPriceInvoice = sortedInvoices.reduce((best, tx) => {
+        if (!tx.liters || !tx.amount) return best;
+        const unitPrice = Math.abs(tx.amount) / tx.liters;
+        if (!best || unitPrice < best.unitPrice) {
+            return { unitPrice, ref: tx.ref, date: tx.date };
+        }
+        return best;
+    }, null);
+
+    const worstPriceInvoice = sortedInvoices.reduce((worst, tx) => {
+        if (!tx.liters || !tx.amount) return worst;
+        const unitPrice = Math.abs(tx.amount) / tx.liters;
+        if (!worst || unitPrice > worst.unitPrice) {
+            return { unitPrice, ref: tx.ref, date: tx.date };
+        }
+        return worst;
+    }, null);
+
+    const advancesValue = advances.reduce((sum, tx) => sum + (tx.amount || 0), 0);
+
+    return {
+        invoices: sortedInvoices,
+        advances,
+        advancesValue,
+        totalBalance,
+        lastInvoice,
+        invoicesLastYear,
+        costLastYear,
+        litersLastYear,
+        avgPrice12m,
+        avgInvoice12m,
+        last30Invoices,
+        last30Cost,
+        bestPriceInvoice,
+        worstPriceInvoice,
+    };
+}
+
+let latestMetrics = computeFuelMetrics(state.transactions);
+
 const formTitle = document.getElementById('form-title');
 const txIdInput = document.getElementById('tx-id');
 const dateInput = document.getElementById('tx-date');
@@ -181,9 +387,13 @@ const amountInput = document.getElementById('tx-amount');
 const addBtn = document.getElementById('add-tx-btn');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 const historyTbody = document.getElementById('history-tbody');
-const balanceEl = document.getElementById('fuel-balance');
+const balanceChip = document.getElementById('fuel-balance-chip');
+const balanceValueEl = document.getElementById('fuel-balance-value');
 const balanceInfoEl = document.getElementById('balance-info');
-const lastInvoiceCard = document.getElementById('last-invoice-card');
+const avgPriceEl = document.getElementById('fuel-avg-price');
+const avgPriceNoteEl = document.getElementById('fuel-avg-price-note');
+const lastInvoiceValueEl = document.getElementById('fuel-last-invoice-value');
+const lastInvoiceNoteEl = document.getElementById('fuel-last-invoice-note');
 const exportBtn = document.getElementById('export-csv-btn');
 const importBtn = document.getElementById('import-csv-btn');
 const csvFileInput = document.getElementById('csv-file-input');
@@ -191,25 +401,50 @@ const clearAllBtn = document.getElementById('clear-all-btn');
 
 
 function render() {
-    state.transactions.sort((a,b) => b.date.localeCompare(a.date));
-    
-    // Render Balance and Last Invoice
-    const totalBalance = state.transactions.reduce((acc, tx) => acc + tx.amount, 0);
-    balanceEl.textContent = fmt(totalBalance);
-    balanceEl.className = `big-number ${totalBalance >= 0 ? 'ok' : 'bad'}`;
-    balanceInfoEl.textContent = totalBalance >= 0 ? 'Firma jest Ci winna pieniądze' : 'Musisz zwrócić pieniądze firmie';
-    
-    const lastInvoice = state.transactions.find(tx => tx.type === 'invoice');
-    if (lastInvoice) {
-        const daysSince = Math.floor((new Date() - new Date(lastInvoice.date)) / (1000 * 60 * 60 * 24));
-        const pricePerLiter = (lastInvoice.liters) ? Math.abs(lastInvoice.amount / lastInvoice.liters) : 0;
-        lastInvoiceCard.innerHTML = `
-            <div class="muted">Ostatnia faktura (${daysSince} dni temu)</div>
-            <div style="font-size:18px; font-weight: 600;">${lastInvoice.date}</div>
-            <div class="muted">${fmt(Math.abs(lastInvoice.amount))} • ${lastInvoice.liters || 'N/A'} L • ${fmt(pricePerLiter, 'PLN/L')}</div>
-        `;
+    state.transactions = normalizeTransactions(state.transactions || []);
+    state.transactions.sort((a,b) => (b.date || '').localeCompare(a.date || ''));
+
+    latestMetrics = computeFuelMetrics(state.transactions);
+
+    // Render hero metrics
+    const balance = latestMetrics.totalBalance;
+    balanceValueEl.textContent = fmt(balance);
+    balanceChip.classList.remove('positive', 'negative', 'neutral');
+    if (balance > 0) {
+        balanceChip.classList.add('positive');
+        balanceInfoEl.textContent = 'Masz jeszcze środki z zaliczki do wykorzystania';
+    } else if (balance < 0) {
+        balanceChip.classList.add('negative');
+        balanceInfoEl.textContent = 'Musisz rozliczyć nadwyżkę wobec firmy';
     } else {
-        lastInvoiceCard.innerHTML = `<div class="muted">Brak faktur w historii</div>`;
+        balanceChip.classList.add('neutral');
+        balanceInfoEl.textContent = 'Saldo rozliczeń jest na poziomie 0 PLN';
+    }
+
+    if (latestMetrics.avgPrice12m > 0) {
+        avgPriceEl.textContent = fmt(latestMetrics.avgPrice12m, 'PLN/L');
+        const litersLabel = latestMetrics.litersLastYear.toFixed(1).replace('.0', '');
+        avgPriceNoteEl.textContent = `${litersLabel} L w ${latestMetrics.invoicesLastYear.length} fakturach (12 mies.)`;
+    } else {
+        avgPriceEl.textContent = '—';
+        avgPriceNoteEl.textContent = 'Brak danych z ostatnich 12 miesięcy';
+    }
+
+    if (latestMetrics.lastInvoice) {
+        const lastInvoice = latestMetrics.lastInvoice;
+        const invoiceDate = new Date(lastInvoice.date);
+        const daysSince = Number.isNaN(invoiceDate.valueOf()) ? null : Math.floor((new Date() - invoiceDate) / (1000 * 60 * 60 * 24));
+        const litersValue = typeof lastInvoice.liters === 'number' ? lastInvoice.liters : num(lastInvoice.liters);
+        const pricePerLiter = litersValue ? Math.abs(lastInvoice.amount) / litersValue : 0;
+        lastInvoiceValueEl.textContent = fmt(Math.abs(lastInvoice.amount));
+        const dateLabel = lastInvoice.date || '—';
+        const litersLabel = litersValue ? `${litersValue.toFixed(2)} L` : '—';
+        const priceLabel = litersValue ? fmt(pricePerLiter, 'PLN/L') : '—';
+        const recency = typeof daysSince === 'number' ? `${daysSince} dni temu` : 'niedawno';
+        lastInvoiceNoteEl.textContent = `${dateLabel} • ${litersLabel} • ${priceLabel} (${recency})`;
+    } else {
+        lastInvoiceValueEl.textContent = '—';
+        lastInvoiceNoteEl.textContent = 'Brak faktur w historii';
     }
 
     // Render History Table
@@ -253,8 +488,123 @@ function render() {
         };
     });
 
-
+    renderInsightsSection();
+    renderMonthlySummary();
     renderAnalytics();
+}
+
+function renderInsightsSection() {
+    const grid = document.getElementById('insights-grid');
+    if (!grid) return;
+
+    if (!state.transactions.length) {
+        grid.innerHTML = '<p class="tiny muted">Dodaj pierwszą transakcję, aby zobaczyć kluczowe wskaźniki.</p>';
+        return;
+    }
+
+    const metrics = latestMetrics || computeFuelMetrics(state.transactions);
+    const advances = metrics.advances;
+    const avgPrice = metrics.avgPrice12m;
+    const avgInvoice = metrics.avgInvoice12m;
+    const last30Invoices = metrics.last30Invoices;
+    const last30Cost = metrics.last30Cost;
+    const bestPriceInvoice = metrics.bestPriceInvoice;
+    const worstPriceInvoice = metrics.worstPriceInvoice;
+    const litersLastYear = metrics.litersLastYear;
+    const invoicesLastYear = metrics.invoicesLastYear;
+    const advancesValue = metrics.advancesValue;
+    const balance = metrics.totalBalance;
+
+    const cards = [
+        {
+            label: '⛽ Średnia cena za litr',
+            value: litersLastYear > 0 ? fmt(avgPrice, 'PLN/L') : '—',
+            note: litersLastYear > 0 ? `${litersLastYear.toFixed(1)} L w ${invoicesLastYear.length} fakturach (12 mies.)` : 'Brak danych z ostatniego roku'
+        },
+        {
+            label: '🗓️ Koszt ostatnich 30 dni',
+            value: last30Invoices.length ? fmt(last30Cost) : '—',
+            note: last30Invoices.length ? `${last30Invoices.length} tankowania` : 'Brak nowych faktur'
+        },
+        {
+            label: '🥇 Najlepsza cena',
+            value: bestPriceInvoice ? fmt(bestPriceInvoice.unitPrice, 'PLN/L') : '—',
+            note: bestPriceInvoice ? `${bestPriceInvoice.ref || 'Faktura'} (${bestPriceInvoice.date})` : 'Brak danych o litrach'
+        },
+        {
+            label: '⚠️ Najwyższa cena',
+            value: worstPriceInvoice ? fmt(worstPriceInvoice.unitPrice, 'PLN/L') : '—',
+            note: worstPriceInvoice ? `${worstPriceInvoice.ref || 'Faktura'} (${worstPriceInvoice.date})` : 'Brak danych o litrach'
+        },
+        {
+            label: '💳 Śr. kwota faktury',
+            value: invoicesLastYear.length ? fmt(avgInvoice) : '—',
+            note: invoicesLastYear.length ? `${invoicesLastYear.length} faktur z ostatnich 12 miesięcy` : (advances.length ? `${advances.length} zaliczek na ${fmt(advancesValue)}` : 'Brak danych z ostatniego roku')
+        },
+        {
+            label: '💼 Saldo rozliczeń',
+            value: fmt(balance),
+            note: balance >= 0 ? 'Pozostałe środki z zaliczki' : 'Do zwrotu dla firmy'
+        }
+    ];
+
+    grid.innerHTML = cards.map(card => `
+        <div class="insight-card">
+            <div class="label">${card.label}</div>
+            <div class="value">${card.value}</div>
+            <div class="note">${card.note}</div>
+        </div>
+    `).join('');
+}
+
+function renderMonthlySummary() {
+    const tbody = document.getElementById('monthly-summary-body');
+    const caption = document.getElementById('monthly-summary-caption');
+    if (!tbody) return;
+
+    const invoices = state.transactions.filter(tx => tx.type === 'invoice' && tx.date);
+    if (!invoices.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="muted" style="text-align:center;">Brak danych do wyświetlenia.</td></tr>';
+        if (caption) caption.textContent = 'Brak danych miesięcznych';
+        return;
+    }
+
+    const monthly = {};
+    invoices.forEach(tx => {
+        const month = tx.date.slice(0, 7);
+        if (!monthly[month]) monthly[month] = { cost: 0, liters: 0, count: 0 };
+        monthly[month].cost += Math.abs(tx.amount);
+        monthly[month].liters += tx.liters || 0;
+        monthly[month].count += 1;
+    });
+
+    const months = Object.keys(monthly).sort();
+    const recentMonths = months.slice(-6);
+    if (caption) caption.textContent = recentMonths.length ? `Ostatnie ${recentMonths.length} miesięcy` : 'Brak danych miesięcznych';
+
+    tbody.innerHTML = recentMonths.map((month, index) => {
+        const data = monthly[month];
+        const avgPrice = data.liters > 0 ? data.cost / data.liters : 0;
+        const prevMonthKey = recentMonths[index - 1];
+        const prev = prevMonthKey ? monthly[prevMonthKey] : null;
+        let deltaCell = '—';
+        if (prev) {
+            const delta = data.cost - prev.cost;
+            const deltaClass = delta > 0 ? 'up' : delta < 0 ? 'down' : 'flat';
+            const symbol = delta > 0 ? '↑' : delta < 0 ? '↓' : '→';
+            deltaCell = `<span class="summary-delta ${deltaClass}">${symbol} ${fmt(Math.abs(delta))}</span>`;
+        }
+        const label = new Date(`${month}-01`).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+        return `
+            <tr>
+                <td>${label}</td>
+                <td>${data.count}</td>
+                <td>${data.liters ? data.liters.toFixed(1) + ' L' : '—'}</td>
+                <td>${data.liters ? fmt(avgPrice, 'PLN/L') : '—'}</td>
+                <td>${deltaCell}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 function startEdit(id) {

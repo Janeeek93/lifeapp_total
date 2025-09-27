@@ -7,81 +7,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
   <style>
-    /* === THEME TOKENS === */
-    :root, [data-theme="light"]{
-      --accent-h: 222; --accent-s: 83%; --accent-l: 53%;
-      --accent: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
-      --accent-weak: hsl(var(--accent-h) 60% 94%);
-      --bg:#f6f7fb; --card:#ffffff; --ink:#0f172a; --muted:#667085; --line:#e7eaf0;
-      --surface:#f9fafb;
-      --green:#059669;--red:#dc2626;--orange:#ea580c;--blue:#2563eb;--purple:#7c3aed;--yellow:#eab308;
-      --shadow-sm:0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow:0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-      --shadow-md:0 6px 16px -6px rgb(0 0 0 / 0.12);
-      --shadow-lg:0 18px 40px -15px rgb(0 0 0 / 0.18);
+    :root {
       --gradient-primary: radial-gradient(1200px 400px at 20% -10%, hsl(var(--accent-h) 80% 92%) 0%, transparent 55%),
                           radial-gradient(1000px 500px at 80% -20%, hsl(280 70% 95%) 0%, transparent 50%);
-      --scrollbar-thumb: hsl(var(--accent-h) 30% 75%);
-      --scrollbar-track: transparent;
       --ring: 2px solid hsl(var(--accent-h) var(--accent-s) 60%);
     }
 
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0; background: var(--bg); color: var(--ink);
-      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto;
-      font-size: 12px; line-height: 1.5; overflow-x: hidden;
-    }
+    .grid { gap: 18px; }
+    .g-main { grid-template-columns: 2fr 1fr; align-items: start; }
+    .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .modules-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .card { animation: fadeInUp .4s ease-out; }
 
-    /* === Motion preferences === */
-    @media (prefers-reduced-motion: reduce){
-      * { animation: none !important; transition: none !important }
-    }
-
-    /* === Animations === */
-    @keyframes fadeInUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
     @keyframes slideInRight { from{opacity:0; transform:translateX(12px)} to{opacity:1; transform:translateX(0)} }
 
-    /* === Layout === */
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px; }
-    .grid { display: grid; gap: 14px; }
-    .g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .g-main { grid-template-columns: 2fr 1fr; align-items: start; }
-    .modules-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-
-    @media(max-width:1200px){ .kpi-grid { grid-template-columns: repeat(2,1fr) } }
-    @media(max-width:900px){ .g-main{ grid-template-columns: 1fr } }
-    @media(max-width:700px){ .g-2{ grid-template-columns: 1fr } }
-
-    /* === Cards & elements === */
-    .card{
-      background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
-      box-shadow: var(--shadow); transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-      animation: fadeInUp .4s ease-out;
-    }
-    .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: hsl(var(--accent-h) 30% 80% / .5) }
-
-    .title { margin: 0 0 10px 0; font-weight: 700; font-size: 15px; letter-spacing: .2px; }
-    .muted { color: var(--muted); }
-    .tiny { font-size: 10px }
-
-    .pill{
-      display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px;
-      background: var(--accent-weak); color: hsl(var(--accent-h) 25% 30%); font-size:10px; font-weight:600;
-      border: 1px solid hsl(var(--accent-h) 40% 82% / .7);
-    }
-
-    .btn{
-      display:inline-flex; gap:8px; align-items:center; justify-content:center;
-      border-radius: 12px; padding: 10px 16px; border: 1px solid var(--line);
-      background: var(--surface); color: var(--ink); cursor:pointer; text-decoration:none; font-weight:600;
-      transition: transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color:hsl(var(--accent-h) 30% 75% / .6) }
-    .btn.primary{ background: var(--accent); color:#fff; border-color: transparent }
-    .btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px hsl(var(--accent-h) 90% 60% / .35) }
+    @media(max-width:1200px){ .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media(max-width:900px){ .g-main{ grid-template-columns: 1fr; } }
 
     .tile{
       cursor:pointer; display:flex; flex-direction:column; gap:10px; border-radius:16px; border:1px solid var(--line);
@@ -94,9 +37,6 @@
     }
     .tile:hover{ transform: translateY(-3px); box-shadow: var(--shadow-md); border-color:hsl(var(--accent-h) 30% 70%) }
     .tile:hover::before{ transform: scaleX(1) }
-    
-    .progress{ height:8px; background:#e2e8f0; border-radius: 999px; overflow:hidden; margin-top:8px; position:relative }
-    .progress > i{ display:block; height:100%; background: var(--accent); border-radius:inherit; transition: width 1s ease-out }
 
     /* === New KPI Tiles === */
     .kpi-tile-large {
@@ -113,30 +53,31 @@
     }
     .kpi-header { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; }
     .kpi-main-value { font-size: 24px; font-weight: 800; line-height: 1.1; }
-    .kpi-details { font-size: 11px; color: var(--muted); line-height: 1.4; }
+    .kpi-details { display:flex; flex-direction:column; gap:4px; font-size: 11px; color: var(--muted); line-height: 1.45; }
+    .kpi-detail-line { position: relative; padding-left: 12px; }
+    .kpi-detail-line::before { content:'•'; position:absolute; left:0; color: var(--muted); font-weight:700; }
     .kpi-progress-container { margin-top: auto; padding-top: 8px; }
     .value-ok { color: var(--green); }
     .value-warn { color: var(--orange); }
     .value-bad { color: var(--red); }
 
-
     /* === Hero === */
     .hero-header{
-      margin:-28px -20px 24px -20px; padding: 24px 20px; color: var(--ink); position:relative; overflow:hidden;
+      margin:-32px -20px 18px -20px; padding: 20px 20px; color: var(--ink); position:relative; overflow:hidden;
       background: var(--gradient-primary);
       border-bottom: 1px solid var(--line);
     }
     .hero-content{
         position:relative; z-index:1; max-width:1280px; margin:0 auto;
         width: 100%;
+        display:flex; align-items:center; justify-content: space-between; gap: 24px;
     }
+    .hero-intro{ display:flex; flex-direction:column; gap:6px; }
     .greeting-text{ font-size: clamp(20px, 4vw, 28px); font-weight:800; margin:0 0 6px 0; animation: fadeInUp .5s ease-out }
     .date-text{ opacity:.9; font-size: 13px; margin:0 0 10px 0; animation: fadeInUp .5s ease-out .1s both }
     .dynamic-message{ font-style: italic; opacity:.85; font-size:12px; animation: fadeInUp .5s ease-out .2s both }
 
-    .quick-actions{
-      position:absolute; top:16px; right:16px; display:flex; gap:10px; animation: slideInRight .5s ease-out .2s both;
-    }
+    .quick-actions{ display:flex; gap:10px; animation: slideInRight .5s ease-out .2s both; }
     .quick-action{
       width:42px; height:42px; background: hsl(0 0% 100% / .6);
       border:1px solid hsl(0 0% 100% / .7); border-radius:10px; display:flex; align-items:center; justify-content:center;
@@ -146,25 +87,15 @@
 
     /* === Lists & feeds === */
     .activity-feed{ max-height: 300px; overflow-y:auto; padding-right:6px }
-    .activity-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); animation: fadeInUp .35s ease-out }
+    .activity-item{ display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line); animation:fadeInUp .35s ease-out }
     .activity-item:last-child{ border-bottom:none }
 
     /* === Upcoming tasks === */
-    .priorities-card{
-        display:flex; flex-direction:column; border:none; background: var(--card);
-        flex-grow: 1;
-    }
+    .priorities-card{ display:flex; flex-direction:column; background: var(--card); flex-grow: 1; }
     .upcoming-header{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px }
-    #upcoming-tasks-list{
-        overflow:auto; padding-right:6px; flex-grow: 1;
-    }
-    #upcoming-tasks-list::-webkit-scrollbar, .activity-feed::-webkit-scrollbar{ width: 10px }
-    #upcoming-tasks-list::-webkit-scrollbar-thumb, .activity-feed::-webkit-scrollbar-thumb{
-      background: var(--scrollbar-thumb); border-radius: 8px; border: 2px solid transparent; background-clip: content-box;
-    }
-    #upcoming-tasks-list{ scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track) }
+    #upcoming-tasks-list{ overflow:auto; padding-right:6px; flex-grow: 1; }
     .task-group-header {
-      font-size: 9px; text-transform: uppercase; color: var(--muted); margin: 16px 0 4px 4px; font-weight: 600; letter-spacing: 0.5px;
+      font-size: 9px; text-transform: uppercase; color: var(--muted); margin: 16px 0 4px 4px; font-weight: 600; letter-spacing:0.5px;
     }
     .task-group-header:first-of-type { margin-top: 0; }
     .upcoming-task-item{
@@ -224,11 +155,10 @@
     }
     @keyframes spin{ to{ transform: translate(-50%,-50%) rotate(360deg) } }
 
-    /* === Responsive === */
     @media (max-width: 768px){
-      .hero-header{ padding: 22px; margin:-28px -20px 18px -20px }
-      .quick-actions{ position: static; margin-top: 12px; justify-content: center }
-      .wrap{ padding: 16px }
+      .hero-header{ padding: 24px; margin:-28px -20px 20px -20px }
+      .hero-content{ flex-direction: column; align-items: flex-start; gap: 16px; }
+      .quick-actions{ width: 100%; justify-content: flex-start; }
     }
   </style>
 </head>
@@ -236,13 +166,15 @@
   <div class="wrap">
     <header class="hero-header">
       <div class="hero-content">
+        <div class="hero-intro">
+          <h1 id="greeting" class="greeting-text">Dzień dobry!</h1>
+          <p id="current-date" class="date-text"></p>
+          <p id="dynamic-message" class="dynamic-message"></p>
+        </div>
         <div class="quick-actions">
           <a href="#" class="quick-action" title="Ustawienia" onclick="openSettingsModal()">⚙️</a>
           <a href="#" class="quick-action" title="Odśwież" onclick="refreshDashboard()">↻</a>
         </div>
-        <h1 id="greeting" class="greeting-text">Dzień dobry!</h1>
-        <p id="current-date" class="date-text"></p>
-        <p id="dynamic-message" class="dynamic-message"></p>
       </div>
     </header>
 
@@ -342,11 +274,19 @@
 const BUDGET_STORAGE_KEY = 'lifeos_budget_v4';
 const FUEL_STORAGE_KEY = 'lifeos_fuel_v1';
 const TASKS_STORAGE_KEY = 'lifeos_tasks_pro_v2';
-const TRAININGS_STORAGE_KEY = 'lifeos_trainings_v1';
+const TRAININGS_STORAGE_KEY_MODERN = 'lifeos_trainings_month_v1';
+const TRAININGS_STORAGE_KEY_LEGACY = 'lifeos_trainings_v1';
+const TRAININGS_STORAGE_KEYS = [TRAININGS_STORAGE_KEY_MODERN, TRAININGS_STORAGE_KEY_LEGACY];
 const HOUSE_STORAGE_KEY = 'buildmaster_pro_v11';
 const LOAN_STORAGE_KEY = 'lifeos_loan_v1';
 const SETTINGS_STORAGE_KEY = 'lifeos_settings_v1';
 const BACKUP_TIMESTAMP_KEY = 'lifeos_last_backup';
+
+const TRAINING_GOALS = {
+  gym: { target: 3, unit: 'sesje', name: 'Siłownia', icon: '🏋️' },
+  running: { target: 5, unit: 'km', name: 'Bieganie', icon: '🏃' },
+  reading: { target: 100, unit: 'stron', name: 'Czytanie', icon: '📚' },
+};
 
 /* === UTIL === */
 function fmt(n, c = 'PLN') {
@@ -356,6 +296,10 @@ function fmt(n, c = 'PLN') {
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
     return `${parts.join(',')}\u00A0${c}`;
   } catch { return `${Number(n || 0).toFixed(2)}\u00A0${c}`; }
+}
+function safeParse(raw, fallback = null){
+  if(!raw) return fallback;
+  try { return JSON.parse(raw); } catch { return fallback; }
 }
 function num(s) {
   if(typeof s === 'number') return s;
@@ -367,7 +311,81 @@ function num(s) {
 }
 function monthKey(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
 function parseDate(dateString){ if(!dateString) return null; const p = dateString.split('-').map(Number); return new Date(Date.UTC(p[0], p[1]-1, p[2])); }
+function parseLocalDate(dateString){ if(!dateString) return null; const p = dateString.split('-').map(Number); if(p.some(v=>!Number.isFinite(v))) return null; return new Date(p[0], p[1]-1, p[2]); }
 function getWeekNumber(d){ d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7)); const yStart=new Date(Date.UTC(d.getUTCFullYear(),0,1)); return [d.getUTCFullYear(), Math.ceil((((d - yStart)/86400000)+1)/7)] }
+function getISOWeekStart(year, week){ const simple = new Date(Date.UTC(year,0,4)); simple.setUTCDate(simple.getUTCDate() + (week-1)*7); const day = simple.getUTCDay(); const diff = (day === 0 ? -6 : 1) - day; simple.setUTCDate(simple.getUTCDate()+diff); return new Date(simple.getFullYear(), simple.getMonth(), simple.getDate()); }
+function formatShortDate(date){ if(!(date instanceof Date)) return ''; const time = date.getTime(); if(Number.isNaN(time)) return ''; return date.toLocaleDateString('pl-PL',{ day:'2-digit', month:'2-digit' }); }
+function formatGoalValue(type, value){ const numValue = Number(value || 0); if(type === 'gym') return Math.max(0, Math.round(numValue)); const rounded = Math.round(numValue * 10) / 10; return Math.abs(rounded % 1) < 0.1 ? Math.round(rounded) : rounded.toFixed(1); }
+
+function normalizeFuelTransaction(tx){ if(!tx || !tx.date) return null; const normalized = { ...tx }; const rawAmount = num(tx.amount ?? tx.value); let type = (tx.type || '').toLowerCase(); if(type !== 'invoice' && type !== 'advance'){ type = rawAmount >= 0 ? 'advance' : 'invoice'; }
+  normalized.type = type;
+  normalized.amount = type === 'invoice' ? -Math.abs(rawAmount) : Math.abs(rawAmount);
+  const litersSource = tx.liters ?? tx.details?.liters ?? tx.volume;
+  const litersValue = num(litersSource);
+  normalized.liters = type === 'invoice' && litersValue > 0 ? litersValue : null;
+  if(!normalized.ref && tx.reference) normalized.ref = tx.reference;
+  return normalized;
+}
+
+function getFuelData(){ const parsed = safeParse(localStorage.getItem(FUEL_STORAGE_KEY), {}); const rawList = Array.isArray(parsed?.transactions) ? parsed.transactions : []; const normalized = rawList.map(normalizeFuelTransaction).filter(Boolean).sort((a,b)=> (b.date||'').localeCompare(a.date||'')); const invoices = normalized.filter(tx=> tx.type === 'invoice'); const advances = normalized.filter(tx=> tx.type === 'advance'); return { transactions: normalized, invoices, advances };
+}
+
+function getTrainingStore(){ for(const key of TRAININGS_STORAGE_KEYS){ const raw = localStorage.getItem(key); if(!raw) continue; const parsed = safeParse(raw, null); if(parsed && typeof parsed === 'object'){ if(parsed.activities && typeof parsed.activities === 'object'){ return { type: 'modern', data: parsed }; }
+      return { type: 'legacy', data: parsed };
+    }
+  }
+  return { type: 'none', data: null };
+}
+
+function computeModernTrainingWeekStats(state, isoYear, isoWeek){ const weekStart = getISOWeekStart(isoYear, isoWeek); const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6); const totals = Object.fromEntries(Object.keys(TRAINING_GOALS).map(k=>[k,0])); const activities = state?.activities && typeof state.activities === 'object' ? state.activities : {};
+  Object.entries(activities).forEach(([dateStr, list])=>{
+    const day = parseLocalDate(dateStr);
+    if(!day) return;
+    day.setHours(0,0,0,0);
+    if(day < weekStart || day > weekEnd) return;
+    if(!Array.isArray(list)) return;
+    list.forEach(activity=>{
+      if(!activity || !TRAINING_GOALS[activity.type] || !activity.completed) return;
+      if(activity.type === 'gym'){ totals.gym += 1; return; }
+      const logged = Number(activity.loggedValue);
+      const planned = Number(activity.plannedValue);
+      const value = Number.isFinite(logged) && logged > 0 ? logged : (Number.isFinite(planned) ? planned : 0);
+      totals[activity.type] += value;
+    });
+  });
+  const goalPercents = {};
+  Object.entries(TRAINING_GOALS).forEach(([type, def])=>{
+    const progress = Number(totals[type] || 0);
+    const percent = def.target > 0 ? Math.min(100, Math.round((progress / def.target) * 100)) : 0;
+    goalPercents[type] = { progress, percent, target: def.target };
+  });
+  const average = Math.round(Object.values(goalPercents).reduce((sum, info)=> sum + (info.percent || 0), 0) / Object.keys(TRAINING_GOALS).length) || 0;
+  return { goalPercents, average, range: { start: weekStart, end: weekEnd } };
+}
+
+function computeModernCompletedWeeks(state, isoYear, isoWeek){ let completed = 0; for(let w = 1; w < isoWeek; w += 1){ const stats = computeModernTrainingWeekStats(state, isoYear, w); const allMet = Object.values(stats.goalPercents || {}).every(info => Number(info.percent || 0) >= 100); if(allMet) completed += 1; }
+  return completed;
+}
+
+function computeLegacyTrainingWeekStats(data, isoYear, isoWeek){ const weekStart = getISOWeekStart(isoYear, isoWeek); const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+6); const weekData = data?.[isoYear]?.[isoWeek] || {}; const progress = weekData.progress || {}; const goalPercents = {};
+  Object.entries(TRAINING_GOALS).forEach(([type, def])=>{
+    const value = Number(progress[type] || 0);
+    const percent = def.target > 0 ? Math.min(100, Math.round((value / def.target) * 100)) : 0;
+    goalPercents[type] = { progress: value, percent, target: def.target };
+  });
+  const average = Math.round(Object.values(goalPercents).reduce((sum, info)=> sum + (info.percent || 0), 0) / Object.keys(TRAINING_GOALS).length) || 0;
+  const completedWeeks = Object.keys(data?.[isoYear] || {}).filter(wn => Number(wn) < isoWeek && data[isoYear][wn]?.isComplete).length;
+  const totalWeeks = Math.max(0, isoWeek - 1);
+  return { goalPercents, average, range: { start: weekStart, end: weekEnd }, completedWeeks, totalWeeks };
+}
+
+function getTrainingSummary(){ const now = new Date(); const [isoYear, isoWeek] = getWeekNumber(now); const totalWeeks = Math.max(0, isoWeek - 1); const store = getTrainingStore(); if(store.type === 'modern'){ const stats = computeModernTrainingWeekStats(store.data, isoYear, isoWeek); return { ...stats, completedWeeks: computeModernCompletedWeeks(store.data, isoYear, isoWeek), totalWeeks: totalWeeks };
+  }
+  if(store.type === 'legacy'){ const legacyStats = computeLegacyTrainingWeekStats(store.data, isoYear, isoWeek); if(typeof legacyStats.totalWeeks !== 'number') legacyStats.totalWeeks = totalWeeks; if(typeof legacyStats.completedWeeks !== 'number') legacyStats.completedWeeks = 0; return legacyStats; }
+  return { goalPercents: null, average: 0, range: null, completedWeeks: 0, totalWeeks };
+}
+
+function renderDetailLines(lines){ if(!Array.isArray(lines) || !lines.length) return '<div class="kpi-detail-line">Brak danych.</div>'; return lines.map(line => `<div class="kpi-detail-line">${line}</div>`).join(''); }
 
 /* === NOTIFICATION === */
 function showNotification(message, type='success'){
@@ -411,12 +429,12 @@ function renderGreetingAndDate(){
 function renderUpcomingTasks(){
   const listEl = document.getElementById('upcoming-tasks-list');
   const tasksRaw = localStorage.getItem(TASKS_STORAGE_KEY);
-  if(!tasksRaw){
+  const tasksState = safeParse(tasksRaw, { tasks: [] });
+  if(!tasksState || !Array.isArray(tasksState.tasks) || tasksState.tasks.length === 0){
     listEl.innerHTML = `<div class="tiny muted" style="padding: 14px;">Brak zadań.</div>`;
     document.getElementById('priorities-summary').textContent = 'Brak zadań';
     return;
   }
-  const tasksState = JSON.parse(tasksRaw);
   const today = new Date(); today.setUTCHours(0,0,0,0);
   
   const overdue = tasksState.tasks.filter(t => t.status !== 'done' && t.dueDate && parseDate(t.dueDate) < today).sort((a,b) => parseDate(a.dueDate)-parseDate(b.dueDate));
@@ -465,28 +483,26 @@ function renderUpcomingTasks(){
 /* === WEEKLY ACTIVITIES === */
 function renderWeeklyActivities(){
   const listEl = document.getElementById('weekly-activities-list');
-  const trainingsRaw = localStorage.getItem(TRAININGS_STORAGE_KEY);
-  const GOALS = { gym:{name:'Siłownia',icon:'🏋️',target:3,unit:'razy'}, running:{name:'Bieganie',icon:'🏃',target:5,unit:'km'}, reading:{name:'Czytanie',icon:'📚',target:100,unit:'stron'} };
-  const [y,w] = getWeekNumber(new Date());
-  let progressData = {};
-  if(trainingsRaw){ const st = JSON.parse(trainingsRaw); progressData = st[y]?.[w]?.progress || {} }
-  listEl.innerHTML = Object.entries(GOALS).map(([k,g],i)=>{
-    const current = progressData[k] || 0;
-    const pct = Math.min(100, current/g.target*100);
-    return `<div class="activity-item" style="animation-delay:${i*.05}s;">
-      <div style="font-size:20px;width:32px;text-align:center">${g.icon}</div>
+  const summary = getTrainingSummary();
+  const goalPercents = summary.goalPercents || {};
+  listEl.innerHTML = Object.entries(TRAINING_GOALS).map(([type, meta], index)=>{
+    const info = goalPercents[type] || { progress: 0, percent: 0, target: meta.target };
+    const current = formatGoalValue(type, info.progress || 0);
+    const pct = Math.max(0, Math.min(100, Number(info.percent) || 0));
+    return `<div class="activity-item" style="animation-delay:${index * 0.05}s;">
+      <div style="font-size:20px;width:32px;text-align:center">${meta.icon}</div>
       <div style="flex:1">
-        <div style="font-weight:600;display:flex;justify-content:space-between"><span>${g.name}</span><span class="tiny muted">${current} / ${g.target} ${g.unit}</span></div>
+        <div style="font-weight:600;display:flex;justify-content:space-between"><span>${meta.name}</span><span class="tiny muted">${current} / ${meta.target} ${meta.unit}</span></div>
         <div class="progress" style="height:6px;margin-top:6px"><i style="width:${pct}%"></i></div>
       </div>
-    </div>`
+    </div>`;
   }).join('');
 }
 
 /* === WEATHER (From Settings) === */
 function renderWeatherWidget() {
   const widget = document.getElementById('weather-widget');
-  const settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || '{}');
+  const settings = safeParse(localStorage.getItem(SETTINGS_STORAGE_KEY), {}) || {};
   const locationQuery = settings.weatherLocation || 'Warszawa';
 
   widget.innerHTML = `<div class="muted" style="padding: 20px; text-align: center; font-size: 13px;">Ładowanie pogody dla: ${locationQuery}...</div>`;
@@ -566,7 +582,6 @@ function renderKPIs(){
 }
 
 function renderKPIData(){
-  const currency = 'PLN';
   const kpiElements = {
       budget: document.getElementById('kpi-budget'),
       fuel: document.getElementById('kpi-fuel'),
@@ -579,88 +594,113 @@ function renderKPIData(){
   // --- Budget KPI ---
   const budgetRaw = localStorage.getItem(BUDGET_STORAGE_KEY);
   if(budgetRaw){
-    const bState = JSON.parse(budgetRaw).modules.budget;
+    const parsedBudget = safeParse(budgetRaw, null);
+    const bState = parsedBudget?.modules?.budget || parsedBudget?.budget || parsedBudget;
     const ym = monthKey();
-    let budgetHTML = `
-      <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
-      <div class="kpi-main-value">—</div>
-      <div class="kpi-details">Brak danych na ten miesiąc.</div>
-      <div class="kpi-progress-container"></div>`;
-
-    if(bState.monthly && bState.monthly[ym]){
+    if(bState && bState.monthly && bState.monthly[ym]){
       const m = bState.monthly[ym];
-      const incSum = m.incomes.reduce((s,x)=> s+num(x.amount),0);
-      const fixSum = m.fixed.reduce((s,x)=> s+num(x.amount),0);
+      const incomes = Array.isArray(m.incomes) ? m.incomes : [];
+      const fixed = Array.isArray(m.fixed) ? m.fixed : [];
+      const incSum = incomes.reduce((s,x)=> s+num(x.amount),0);
+      const fixSum = fixed.reduce((s,x)=> s+num(x.amount),0);
       const daysInMonth = new Date(ym.split('-')[0], ym.split('-')[1], 0).getDate();
       const currentDay = new Date().getDate();
-      
+
       const dailyBudget = Math.max(0, (incSum - fixSum)/daysInMonth);
       const budgetForToday = dailyBudget * currentDay;
 
-      const catsById = Object.fromEntries((bState.categories||[]).map(c=>[c.id,c]));
-      const spentUntilToday = (bState.transactions||[]).filter(t=> String(t.date||'').startsWith(ym) && new Date(t.date).getDate()<=currentDay).reduce((sum,t)=>{
+      const catsById = Object.fromEntries((Array.isArray(bState?.categories)?bState.categories:[]).map(c=>[c.id,c]));
+      const txs = Array.isArray(bState?.transactions) ? bState.transactions : [];
+      const spentUntilToday = txs.filter(t=> String(t.date||'').startsWith(ym) && new Date(t.date).getDate()<=currentDay).reduce((sum,t)=>{
         if(t.splits?.length){ return sum + t.splits.reduce((ss,sp)=>{ const cat=catsById[sp.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving') && cat.id!=='c_fixed') ? ss+Math.abs(num(sp.amount)) : ss },0) }
         const cat=catsById[t.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving') && cat.id!=='c_fixed') ? sum+Math.abs(num(t.amount)) : sum
       },0);
-      
+
       const buffer = budgetForToday - spentUntilToday;
       const bufferClass = buffer > budgetForToday * 0.2 ? 'value-ok' : buffer >= 0 ? 'value-warn' : 'value-bad';
 
-      const totalSpentMonth = (bState.transactions||[]).filter(t=> String(t.date||'').startsWith(ym)).reduce((sum,t)=>{
+      const totalSpentMonth = txs.filter(t=> String(t.date||'').startsWith(ym)).reduce((sum,t)=>{
         if(t.splits?.length){ return sum + t.splits.reduce((ss,sp)=>{ const cat=catsById[sp.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving')) ? ss+Math.abs(num(sp.amount)) : ss },0) }
         const cat=catsById[t.categoryId]; return (cat && (cat.type==='expense'||cat.type==='saving')) ? sum+Math.abs(num(t.amount)) : sum
       },0);
       const monthlyBudget = incSum;
       const spentPct = monthlyBudget > 0 ? (totalSpentMonth / monthlyBudget) * 100 : 0;
 
-      budgetHTML = `
+      const detailLines = [
+        `Dzisiejszy limit: ${fmt(dailyBudget)} • wydano ${fmt(spentUntilToday)} z ${fmt(budgetForToday)}.`,
+        `Plan miesięczny: ${fmt(monthlyBudget)} (wykorzystano ${Math.round(spentPct)}%).`
+      ];
+
+      kpiElements.budget.innerHTML = `
         <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
         <div class="kpi-main-value ${bufferClass}">${fmt(buffer, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
-        <div class="kpi-details">
-          Zapas na dziś. Wydano ${fmt(spentUntilToday)} z ${fmt(budgetForToday)}.
-        </div>
+        <div class="kpi-details">${renderDetailLines(detailLines)}</div>
         <div class="kpi-progress-container">
           <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span>Budżet miesięczny</span><span>${spentPct.toFixed(0)}%</span>
+            <span>Budżet miesięczny</span><span>${Math.round(spentPct)}%</span>
           </div>
           <div class="progress"><i style="width:${spentPct}%"></i></div>
         </div>`;
+    } else {
+      kpiElements.budget.innerHTML = `
+        <div class="kpi-header"><span>💰</span><h4>Budżet</h4></div>
+        <div class="kpi-main-value">—</div>
+        <div class="kpi-details">${renderDetailLines(['Brak danych na ten miesiąc.'])}</div>
+        <div class="kpi-progress-container"></div>`;
     }
-    kpiElements.budget.innerHTML = budgetHTML;
   } else {
-    kpiElements.budget.innerHTML = `<div class="kpi-header"><span>💰</span><h4>Budżet</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.budget.innerHTML = `<div class="kpi-header"><span>💰</span><h4>Budżet</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Fuel KPI ---
-  const fuelRaw = localStorage.getItem(FUEL_STORAGE_KEY);
-  if(fuelRaw){
-    const f = JSON.parse(fuelRaw);
-    const bal = f.transactions.reduce((a,tx)=> a+num(tx.amount),0);
-    const balanceClass = bal >= 0 ? 'value-ok' : 'value-bad';
-    
-    const last = f.transactions.filter(tx=> tx.type==='invoice').sort((a,b)=> b.date.localeCompare(a.date))[0];
-    let detailsHTML = 'Brak zarejestrowanych tankowań.';
-    if(last){
-      const days = Math.floor((new Date() - new Date(last.date))/86400000);
-      const amount = Math.abs(num(last.amount));
-      const liters = num(last.details?.liters);
-      const pricePerLiter = liters > 0 ? (amount / liters).toFixed(2) : 0;
-      detailsHTML = `Ostatnie tankowanie ${days} dni temu za ${fmt(amount)} (${liters.toFixed(1)} L @ ${pricePerLiter} zł).`;
+  const fuelData = getFuelData();
+  if(fuelData.transactions.length){
+    const balance = fuelData.transactions.reduce((sum, tx)=> sum + tx.amount, 0);
+    const balanceClass = balance >= 0 ? 'value-ok' : 'value-bad';
+    const lastInvoice = fuelData.invoices[0];
+    const detailLines = [];
+    if(lastInvoice){
+      const days = lastInvoice.date ? Math.floor((new Date() - new Date(lastInvoice.date))/86400000) : null;
+      const amount = Math.abs(Number(lastInvoice.amount) || 0);
+      const liters = typeof lastInvoice.liters === 'number' ? lastInvoice.liters : num(lastInvoice.liters);
+      detailLines.push(`Ostatnie tankowanie ${days === null ? '' : `${days} dni temu `}za ${fmt(amount)}.`);
+      if(liters && liters > 0){
+        const pricePerLiter = amount / liters;
+        detailLines.push(`${liters.toFixed(1)} L @ ${fmt(pricePerLiter, 'PLN/L')}`);
+      }
+    } else {
+      detailLines.push('Brak zarejestrowanych tankowań.');
+    }
+    const lastYearStart = new Date();
+    lastYearStart.setHours(0,0,0,0);
+    lastYearStart.setMonth(lastYearStart.getMonth() - 12);
+    const invoicesLastYear = fuelData.invoices.filter(tx => {
+      const txDate = parseDate(tx.date);
+      return txDate ? txDate >= lastYearStart : false;
+    });
+    const totalCost = invoicesLastYear.reduce((sum, tx)=> sum + Math.abs(Number(tx.amount) || 0), 0);
+    const totalLiters = invoicesLastYear.reduce((sum, tx)=> sum + (Number(tx.liters) || 0), 0);
+    if(totalLiters > 0){
+      detailLines.push(`Średnia cena (12M): ${fmt(totalCost / totalLiters, 'PLN/L')} (${invoicesLastYear.length} fakt.)`);
+    } else if(invoicesLastYear.length === 0 && fuelData.invoices.length > 0){
+      detailLines.push(`Brak faktur z ostatnich 12 mies. • Łącznie ${fuelData.invoices.length}`);
+    } else {
+      detailLines.push(`${fuelData.invoices.length} faktur • ${fuelData.advances.length} zaliczek`);
     }
     kpiElements.fuel.innerHTML = `
       <div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div>
-      <div class="kpi-main-value ${balanceClass}">${fmt(bal, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
-      <div class="kpi-details">${detailsHTML}</div>`;
+      <div class="kpi-main-value ${balanceClass}">${fmt(balance, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>`;
   } else {
-    kpiElements.fuel.innerHTML = `<div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.fuel.innerHTML = `<div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Tasks KPI ---
   const tasksRaw = localStorage.getItem(TASKS_STORAGE_KEY);
   if(tasksRaw){
-    const t = JSON.parse(tasksRaw);
+    const t = safeParse(tasksRaw, { tasks: [] });
     const today = new Date(); today.setUTCHours(0,0,0,0);
-    const activeTasks = t.tasks.filter(x=> x.status!=='done');
+    const activeTasks = Array.isArray(t?.tasks) ? t.tasks.filter(x=> x.status!=='done') : [];
     const overdue = activeTasks.filter(x => x.dueDate && parseDate(x.dueDate) < today).length;
     const forToday = activeTasks.filter(x => x.dueDate && parseDate(x.dueDate).getTime() === today.getTime()).length;
     const activeCount = activeTasks.length;
@@ -671,14 +711,17 @@ function renderKPIData(){
     const end = new Date(start); end.setDate(start.getDate()+6); end.setHours(23,59,59,999);
     const weekly = t.tasks.filter(x=> x.dueDate && new Date(x.dueDate)>=start && new Date(x.dueDate)<=end);
     const done = weekly.filter(x=> x.status==='done').length;
-    const planned = weekly.length; const progress = planned>0 ? (done/planned)*100 : 0;
-    
+    const planned = weekly.length;
+    const progress = planned>0 ? (done/planned)*100 : 0;
+    const detailLines = [
+      `Zaległe: ${overdue} • Na dziś: ${forToday}.`,
+      planned > 0 ? `Postęp tygodnia: ${done}/${planned} (${Math.round(progress)}%).` : 'Brak zadań zaplanowanych na ten tydzień.'
+    ];
+
     kpiElements.tasks.innerHTML = `
       <div class="kpi-header"><span>✅</span><h4>Zadania</h4></div>
       <div class="kpi-main-value ${activeClass}">${activeCount}</div>
-      <div class="kpi-details">
-        Aktywnych zadań. W tym <span style="color:var(--red); font-weight:600;">${overdue}</span> zaległych i <span style="font-weight:600;">${forToday}</span> na dziś.
-      </div>
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>
       <div class="kpi-progress-container">
         <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
           <span>Ukończono w tym tyg.</span><span>${done}/${planned}</span>
@@ -686,57 +729,58 @@ function renderKPIData(){
         <div class="progress"><i style="width:${progress}%"></i></div>
       </div>`;
   } else {
-    kpiElements.tasks.innerHTML = `<div class="kpi-header"><span>✅</span><h4>Zadania</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.tasks.innerHTML = `<div class="kpi-header"><span>✅</span><h4>Zadania</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Progress KPI ---
-  const trRaw = localStorage.getItem(TRAININGS_STORAGE_KEY);
-  if(trRaw){
-    const st = JSON.parse(trRaw);
-    const [y,w] = getWeekNumber(new Date());
-    const yData = st[y] || {};
-    const wd = yData[w];
-    let avg = 0;
-    if(wd){
-      const GOALS = { gym:3, running:5, reading:100 };
-      let sum=0, cnt=0;
-      for(const k in GOALS){ if(GOALS.hasOwnProperty(k)){ sum += Math.min(100, ((wd.progress[k]||0)/GOALS[k])*100); cnt++ }}
-      avg = cnt > 0 ? sum/cnt : 0;
-    }
+  const trainingSummary = getTrainingSummary();
+  if(trainingSummary.goalPercents){
+    const avg = Number(trainingSummary.average || 0);
     const avgClass = avg > 80 ? 'value-ok' : avg > 40 ? 'value-warn' : 'value-bad';
-    const completedWeeks = Object.keys(yData).filter(wn=> parseInt(wn)<w && yData[wn].isComplete).length;
+    const totalWeeks = typeof trainingSummary.totalWeeks === 'number' ? trainingSummary.totalWeeks : Math.max(0, getWeekNumber(new Date())[1] - 1);
+    const completedWeeks = trainingSummary.completedWeeks || 0;
+    const detailLines = [];
+    if(trainingSummary.range){
+      detailLines.push(`Zakres: ${formatShortDate(trainingSummary.range.start)} – ${formatShortDate(trainingSummary.range.end)}.`);
+    }
+    Object.entries(TRAINING_GOALS).forEach(([type, def])=>{
+      const info = trainingSummary.goalPercents?.[type] || { progress: 0, target: def.target };
+      detailLines.push(`${def.name}: ${formatGoalValue(type, info.progress || 0)} / ${def.target} ${def.unit}`);
+    });
+    detailLines.push(`W pełni zrealizowane tygodnie: ${completedWeeks}/${totalWeeks}.`);
 
     kpiElements.progress.innerHTML = `
       <div class="kpi-header"><span>💪</span><h4>Progres</h4></div>
       <div class="kpi-main-value ${avgClass}">${Math.round(avg)}<span class="tiny muted" style="margin-left: 4px;">%</span></div>
-      <div class="kpi-details">
-        Średni postęp w tym tygodniu. Ukończono <span style="font-weight:600;">${completedWeeks} z ${w-1}</span> poprzednich tyg. w tym roku.
-      </div>
-       <div class="kpi-progress-container">
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>
+      <div class="kpi-progress-container">
           <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
             <span>Postęp w tym tyg.</span>
           </div>
-          <div class="progress"><i style="width:${avg}%"></i></div>
+          <div class="progress"><i style="width:${Math.min(100, Math.max(0, avg))}%"></i></div>
       </div>`;
   } else {
-    kpiElements.progress.innerHTML = `<div class="kpi-header"><span>💪</span><h4>Progres</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.progress.innerHTML = `<div class="kpi-header"><span>💪</span><h4>Progres</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- House KPI ---
   const houseRaw = localStorage.getItem(HOUSE_STORAGE_KEY);
   if(houseRaw){
-    const hState = JSON.parse(houseRaw);
-    const { tasks, expenses, project } = hState;
-    const completedTasksProgress = tasks.map(t => (t.progress || 0));
+    const hState = safeParse(houseRaw, {});
+    const tasks = Array.isArray(hState?.tasks) ? hState.tasks : [];
+    const expenses = Array.isArray(hState?.expenses) ? hState.expenses : [];
+    const completedTasksProgress = tasks.map(t => Number(t.progress || 0));
     const totalProgress = tasks.length > 0 ? completedTasksProgress.reduce((a,b) => a + b, 0) / tasks.length : 0;
-    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-      
+    const totalExpenses = expenses.reduce((sum, e) => sum + num(e.amount), 0);
+
+    const detailLines = [
+      `${tasks.length} zadań • ${expenses.length} wydatków.`,
+      `Średni postęp zadań: ${tasks.length ? totalProgress.toFixed(0) : 0}%`
+    ];
     kpiElements.house.innerHTML = `
       <div class="kpi-header"><span>🏗️</span><h4>Budowa</h4></div>
       <div class="kpi-main-value">${fmt(totalExpenses)}</div>
-      <div class="kpi-details">
-        Całkowite wydatki projektu.
-      </div>
+      <div class="kpi-details">${renderDetailLines(detailLines)}</div>
       <div class="kpi-progress-container">
         <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
           <span>Całkowity postęp prac</span><span>${totalProgress.toFixed(0)}%</span>
@@ -744,26 +788,29 @@ function renderKPIData(){
         <div class="progress"><i style="width:${totalProgress}%"></i></div>
       </div>`;
   } else {
-    kpiElements.house.innerHTML = `<div class="kpi-header"><span>🏗️</span><h4>Budowa</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.house.innerHTML = `<div class="kpi-header"><span>🏗️</span><h4>Budowa</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 
   // --- Loan KPI ---
   const loanRaw = localStorage.getItem(LOAN_STORAGE_KEY);
   if(loanRaw){
-    const lState = JSON.parse(loanRaw);
-    if (lState.loanDetails) {
-      const { loanDetails, payments } = lState;
+    const lState = safeParse(loanRaw, {});
+    if (lState && lState.loanDetails) {
+      const loanDetails = lState.loanDetails;
+      const payments = Array.isArray(lState.payments) ? lState.payments : [];
       const totalOverpayments = payments.reduce((sum, p) => sum + (p.overpayment || 0), 0);
       const totalCapitalPaid = payments.reduce((sum, p) => sum + p.capital, 0) + totalOverpayments;
       const capitalRemaining = loanDetails.totalCapital - totalCapitalPaid;
       const progress = (totalCapitalPaid / loanDetails.totalCapital) * 100;
 
+      const detailLines = [
+        `Spłacono kapitału: ${fmt(totalCapitalPaid)}.`,
+        `Nadpłaty: ${fmt(totalOverpayments)}.`
+      ];
       kpiElements.loan.innerHTML = `
         <div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div>
         <div class="kpi-main-value">${fmt(capitalRemaining, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
-        <div class="kpi-details">
-          Pozostało do spłaty. Spłacono ${fmt(totalCapitalPaid)}.
-        </div>
+        <div class="kpi-details">${renderDetailLines(detailLines)}</div>
         <div class="kpi-progress-container">
           <div class="tiny muted" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
             <span>Postęp spłaty</span><span>${progress.toFixed(1)}%</span>
@@ -771,10 +818,10 @@ function renderKPIData(){
           <div class="progress"><i style="width:${progress}%"></i></div>
         </div>`;
     } else {
-       kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">Brak skonfigurowanego kredytu.</div>`;
+       kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">${renderDetailLines(['Brak skonfigurowanego kredytu.'])}</div>`;
     }
   } else {
-    kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">Brak danych.</div>`;
+    kpiElements.loan.innerHTML = `<div class="kpi-header"><span>🏦</span><h4>Kredyt</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
   }
 }
 
@@ -860,11 +907,13 @@ const exportBtn = document.getElementById('export-all-btn');
 const importBtn = document.getElementById('import-all-btn');
 const importInput = document.getElementById('import-file-input');
 exportBtn.onclick = ()=>{
+  const trainingRaw = TRAININGS_STORAGE_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
+  const trainingData = trainingRaw ? safeParse(trainingRaw, null) : null;
   const allData = {
     budget: JSON.parse(localStorage.getItem(BUDGET_STORAGE_KEY) || 'null'),
     fuel: JSON.parse(localStorage.getItem(FUEL_STORAGE_KEY) || 'null'),
     tasks_pro: JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY) || 'null'),
-    trainings: JSON.parse(localStorage.getItem(TRAININGS_STORAGE_KEY) || 'null'),
+    trainings: trainingData,
     house: JSON.parse(localStorage.getItem(HOUSE_STORAGE_KEY) || 'null'),
     loan: JSON.parse(localStorage.getItem(LOAN_STORAGE_KEY) || 'null'),
     settings: JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null'),
@@ -886,7 +935,10 @@ importInput.onchange = (e)=>{
       if(data.budget) localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(data.budget));
       if(data.fuel) localStorage.setItem(FUEL_STORAGE_KEY, JSON.stringify(data.fuel));
       if(data.tasks_pro) localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(data.tasks_pro));
-      if(data.trainings) localStorage.setItem(TRAININGS_STORAGE_KEY, JSON.stringify(data.trainings));
+      if(data.trainings){
+        localStorage.setItem(TRAININGS_STORAGE_KEY_MODERN, JSON.stringify(data.trainings));
+        localStorage.removeItem(TRAININGS_STORAGE_KEY_LEGACY);
+      }
       if(data.house) localStorage.setItem(HOUSE_STORAGE_KEY, JSON.stringify(data.house));
       if(data.loan) localStorage.setItem(LOAN_STORAGE_KEY, JSON.stringify(data.loan));
       if(data.settings) localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(data.settings));
