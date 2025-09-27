@@ -4,38 +4,39 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BuildMaster Pro — Centrum Zarządzania Budową</title>
+  <link rel="stylesheet" href="assets/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --primary: #3b82f6;
-      --primary-dark: #2563eb;
-      --primary-light: #dbeafe;
-      --primary-lighter: #eff6ff;
-      --success: #10b981;
-      --success-light: #d1fae5;
-      --error: #ef4444;
-      --error-light: #fee2e2;
-      --warning: #f59e0b;
-      --warning-light: #fef3c7;
-      --info: #6366f1;
-      --info-light: #e0e7ff;
-      --bg: #f8fafc;
-      --bg-secondary: #f1f5f9;
+      --primary: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+      --primary-dark: hsl(var(--accent-h) var(--accent-s) calc(var(--accent-l) - 10%));
+      --primary-light: hsl(var(--accent-h) 82% 90%);
+      --primary-lighter: hsl(var(--accent-h) 88% 96%);
+      --success: var(--green);
+      --success-light: var(--green-soft);
+      --error: var(--red);
+      --error-light: var(--red-soft);
+      --warning: var(--orange);
+      --warning-light: var(--orange-soft);
+      --info: hsl(var(--accent-h) 70% 60%);
+      --info-light: hsl(var(--accent-h) 80% 92%);
+      --bg: var(--surface);
+      --bg-secondary: hsl(var(--accent-h) 70% 96%);
       --sidebar-bg: #0f172a;
-      --card-bg: #ffffff;
-      --text-primary: #0f172a;
-      --text-secondary: #64748b;
-      --text-tertiary: #94a3b8;
-      --border: #e2e8f0;
-      --border-light: #f1f5f9;
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+      --card-bg: var(--card);
+      --text-primary: var(--ink);
+      --text-secondary: var(--muted);
+      --text-tertiary: hsl(var(--accent-h) 20% 65%);
+      --border: var(--line);
+      --border-light: hsl(var(--accent-h) 55% 90%);
+      --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(15 23 42 / 0.1), 0 1px 2px -1px rgb(15 23 42 / 0.08);
+      --shadow-md: 0 4px 10px -2px rgb(15 23 42 / 0.12);
+      --shadow-lg: 0 18px 35px -10px rgb(15 23 42 / 0.18);
+      --shadow-xl: 0 30px 60px -24px rgb(15 23 42 / 0.22);
       --radius: 12px;
       --radius-sm: 8px;
       --radius-lg: 16px;
@@ -44,9 +45,9 @@
     }
 
     [data-theme="dark"] {
-      --primary: #60a5fa;
-      --primary-dark: #3b82f6;
-      --primary-light: #1e3a8a;
+      --primary: hsl(var(--accent-h) 75% 70%);
+      --primary-dark: hsl(var(--accent-h) 70% 62%);
+      --primary-light: hsl(var(--accent-h) 60% 45%);
       --primary-lighter: #1e293b;
       --bg: #0f172a;
       --bg-secondary: #1e293b;
@@ -73,12 +74,10 @@
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
       color: var(--text-primary);
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.6;
       transition: var(--transition);
-      font-size: 15px;
-      line-height: 1.5;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
@@ -220,22 +219,61 @@
     }
     
     .nav-icon {
-      width: 20px;
-      height: 20px;
-      display: flex;
+      font-size: 16px;
+      line-height: 1;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
     }
-    
+
     .nav-badge {
-      margin-left: auto;
+      margin-left: 6px;
       background: var(--error);
-      color: white;
+      color: #fff;
       font-size: 11px;
       padding: 2px 6px;
-      border-radius: 10px;
+      border-radius: 999px;
       font-weight: 700;
+    }
+
+    .house-hero-actions {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .house-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      gap: 8px;
+    }
+
+    .house-tabs::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .house-tabs .page-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .house-tabs .page-tab .nav-badge {
+      margin-left: auto;
+    }
+
+    .module-panels {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      padding-top: 24px;
+    }
+
+    .module-panels .tab-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
     }
 
     .sidebar-footer {
@@ -266,6 +304,10 @@
       align-items: center;
       gap: 24px;
     }
+
+    .topbar-left .back-link {
+      font-size: 13px;
+    }
     
     .page-title {
       font-size: 24px;
@@ -291,71 +333,68 @@
 
     /* Buttons */
     .btn {
-      padding: 10px 20px;
-      border: 2px solid var(--border);
-      background: var(--card-bg);
-      color: var(--text-primary);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: var(--transition);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition), background var(--transition), color var(--transition);
       white-space: nowrap;
-      position: relative;
-      overflow: hidden;
     }
-    
+
     .btn:hover {
-      transform: translateY(-2px);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .btn-primary:hover {
       box-shadow: var(--shadow-md);
     }
-    
-    .btn:active {
-      transform: translateY(0);
-    }
-    
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: white;
-      border: none;
-    }
-    
-    .btn-primary:hover {
-      box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
-    }
-    
+
     .btn-success {
       background: var(--success);
-      color: white;
-      border: none;
+      color: #fff;
+      border-color: transparent;
     }
-    
+
     .btn-danger {
       background: var(--error);
-      color: white;
-      border: none;
+      color: #fff;
+      border-color: transparent;
     }
-    
+
     .btn-ghost {
       background: transparent;
-      border: none;
+      border-color: var(--border);
       color: var(--text-secondary);
     }
-    
+
     .btn-ghost:hover {
-      background: var(--bg-secondary);
+      background: var(--surface);
       color: var(--text-primary);
     }
-    
+
     .btn-icon {
       width: 40px;
       height: 40px;
       padding: 0;
-      border-radius: 50%;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: 18px;
     }
     
     .btn-group {
@@ -1901,113 +1940,75 @@
     }
   </style>
 </head>
-<body>
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="logo">
-        <div class="logo-icon">🏗️</div>
-        <div class="logo-text">
-          <h1>BuildMaster</h1>
-          <p>Centrum Zarządzania</p>
+<body class="module-shell">
+  <header class="module-header">
+    <div class="wrap module-header-inner">
+      <div class="module-header-top">
+        <div class="module-header-info">
+          <a href="index.html" class="back-link">← Powrót</a>
+          <div class="module-eyebrow">Dom i budowa</div>
+          <h1 class="module-title">BuildMaster Pro</h1>
+          <p class="module-subtitle">Monitoruj postęp projektu domu, kontroluj budżet i reaguj na zagrożenia w jednym miejscu.</p>
+        </div>
+        <div class="module-header-actions house-hero-actions">
+          <button class="btn soft" type="button" onclick="exportData()">📥 Eksport</button>
+          <button class="btn soft" type="button" onclick="importData()">📤 Import</button>
+          <button class="btn soft" type="button" onclick="generateReport()">📋 Raport</button>
+          <button class="btn soft" type="button" onclick="openSettingsModal()">⚙️ Ustawienia</button>
+          <button class="btn ghost icon-btn" id="theme-toggle" type="button" onclick="toggleTheme()">🌙</button>
         </div>
       </div>
     </div>
+  </header>
 
-    <ul class="nav-menu" id="nav-menu">
-      <li class="nav-item">
-        <a href="#" class="active" data-tab="dashboard">
-          <span class="nav-icon">📊</span>
-          <span>Panel Główny</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="timeline">
-          <span class="nav-icon">📅</span>
-          <span>Harmonogram</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="budget">
-          <span class="nav-icon">💰</span>
-          <span>Budżet</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="tasks">
-          <span class="nav-icon">✅</span>
-          <span>Zadania</span>
-          <span class="nav-badge hidden" id="tasks-badge">0</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="projects">
-          <span class="nav-icon">🏡</span>
-          <span>Projekty Domów</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="links">
-          <span class="nav-icon">🔗</span>
-          <span>Linki i Zasoby</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="contractors">
-          <span class="nav-icon">👷</span>
-          <span>Wykonawcy</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="materials">
-          <span class="nav-icon">🧱</span>
-          <span>Materiały</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="weather">
-          <span class="nav-icon">🌤️</span>
-          <span>Pogoda</span>
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="#" data-tab="notes">
-          <span class="nav-icon">📝</span>
-          <span>Notatki</span>
-        </a>
-      </li>
-    </ul>
-
-    <div class="sidebar-footer">
-      <button class="btn" style="width: 100%;" onclick="openSettingsModal()">⚙️ Ustawienia</button>
-    </div>
-  </aside>
-  
-  <div id="app-overlay"></div>
-
-  <!-- Main Wrapper -->
-  <div class="main-wrapper">
-    <!-- Topbar -->
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="btn btn-ghost btn-icon mobile-only" id="menu-toggle">☰</button>
-        <div class="page-title" id="page-title">
-          <span id="page-icon">📊</span>
-          <span id="page-name">Panel Główny</span>
+  <main class="module-content">
+    <div class="wrap">
+      <section class="card module-summary-card">
+        <div class="card-header">
+          <div>
+            <h2 class="title" style="margin-bottom:4px;">Status projektu</h2>
+            <p class="tiny muted">Aktualizowany na podstawie harmonogramu i wydatków</p>
+          </div>
         </div>
-      </div>
-      <div class="topbar-right">
-        <button class="btn btn-ghost btn-icon" onclick="exportData()" title="Eksport danych">📥</button>
-        <button class="btn btn-ghost btn-icon" onclick="importData()" title="Import danych">📤</button>
-        <button class="btn btn-ghost btn-icon" onclick="generateReport()" title="Generuj raport">📋</button>
-        <button class="btn btn-ghost btn-icon" id="theme-toggle" onclick="toggleTheme()">🌙</button>
-      </div>
-    </header>
+        <div class="summary-grid">
+          <article class="summary-stat">
+            <span class="label">Postęp projektu</span>
+            <span class="value" id="hero-progress">0%</span>
+            <span class="note" id="hero-progress-note">Średnia ukończenia zadań</span>
+          </article>
+          <article class="summary-stat">
+            <span class="label">Wydatki</span>
+            <span class="value" id="hero-budget">0 zł</span>
+            <span class="note" id="hero-budget-note">z planowanego budżetu</span>
+          </article>
+          <article class="summary-stat">
+            <span class="label">Opóźnienia</span>
+            <span class="value" id="hero-overdue">0</span>
+            <span class="note" id="hero-overdue-note">Zadań po terminie</span>
+          </article>
+          <article class="summary-stat">
+            <span class="label">Do terminu</span>
+            <span class="value" id="hero-timeline">—</span>
+            <span class="note" id="hero-timeline-note">Brak planowanej daty zakończenia</span>
+          </article>
+        </div>
+      </section>
 
-    <!-- Main Content -->
-    <main class="main-content" id="main-content">
-      <!-- Dashboard Tab -->
-      <div id="dashboard" class="tab-panel">
+      <nav class="page-tabs house-tabs" id="nav-menu">
+        <button type="button" class="page-tab active" data-tab="dashboard"><span class="nav-icon">📊</span><span>Panel główny</span></button>
+        <button type="button" class="page-tab" data-tab="timeline"><span class="nav-icon">📅</span><span>Harmonogram</span></button>
+        <button type="button" class="page-tab" data-tab="budget"><span class="nav-icon">💰</span><span>Budżet</span></button>
+        <button type="button" class="page-tab" data-tab="tasks"><span class="nav-icon">✅</span><span>Zadania</span><span class="nav-badge hidden" id="tasks-badge">0</span></button>
+        <button type="button" class="page-tab" data-tab="projects"><span class="nav-icon">🏡</span><span>Projekty domów</span></button>
+        <button type="button" class="page-tab" data-tab="links"><span class="nav-icon">🔗</span><span>Linki i zasoby</span></button>
+        <button type="button" class="page-tab" data-tab="contractors"><span class="nav-icon">👷</span><span>Wykonawcy</span></button>
+        <button type="button" class="page-tab" data-tab="materials"><span class="nav-icon">🧱</span><span>Materiały</span></button>
+        <button type="button" class="page-tab" data-tab="weather"><span class="nav-icon">🌤️</span><span>Pogoda</span></button>
+        <button type="button" class="page-tab" data-tab="notes"><span class="nav-icon">📝</span><span>Notatki</span></button>
+      </nav>
+
+      <div id="main-content" class="module-panels">
+        <div id="dashboard" class="tab-panel">
         <div class="grid grid-4 mb-4">
           <div class="stat-card">
             <div class="stat-card-icon primary">📊</div>
@@ -2303,8 +2304,9 @@
           <div id="notes-list" class="grid grid-3"></div>
         </div>
       </div>
-    </main>
-  </div>
+      </div>
+    </div>
+  </main>
 
   <!-- Quick Actions -->
   <div class="quick-actions">
@@ -2336,6 +2338,22 @@
   <script>
     // App State
     const APP_KEY = 'buildmaster_pro_v11';
+    const safeParse = (raw, fallbackFactory) => {
+      const fallback = () => (typeof fallbackFactory === 'function' ? fallbackFactory() : fallbackFactory);
+      if (!raw) return fallback();
+      try {
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : fallback();
+      } catch {
+        return fallback();
+      }
+    };
+    const deepClone = (value) => {
+      if (typeof structuredClone === 'function') {
+        try { return structuredClone(value); } catch (error) { /* ignore */ }
+      }
+      return JSON.parse(JSON.stringify(value));
+    };
     let state = {};
     const defaultState = {
       theme: 'light',
@@ -2414,17 +2432,14 @@
 
     // State Management
     function loadState() {
-      const saved = localStorage.getItem(APP_KEY);
-      if (saved) {
-        state = JSON.parse(saved);
-        // Ensure all keys from default state exist
-        for (const key in defaultState) {
-          if (typeof state[key] === 'undefined') {
-            state[key] = defaultState[key];
+      const savedState = safeParse(localStorage.getItem(APP_KEY), () => null);
+      state = deepClone(defaultState);
+      if (savedState && typeof savedState === 'object') {
+        for (const key of Object.keys(savedState)) {
+          if (typeof savedState[key] !== 'undefined') {
+            state[key] = savedState[key];
           }
         }
-      } else {
-        state = JSON.parse(JSON.stringify(defaultState));
       }
     }
 
@@ -2465,28 +2480,27 @@
 
     // Navigation
     function switchTab(tabName) {
-      document.querySelectorAll('.nav-item a').forEach(link => {
-        link.classList.toggle('active', link.dataset.tab === tabName);
+      document.querySelectorAll('#nav-menu [data-tab]').forEach(control => {
+        control.classList.toggle('active', control.dataset.tab === tabName);
       });
 
       document.querySelectorAll('.tab-panel').forEach(panel => {
         panel.classList.toggle('hidden', panel.id !== tabName);
       });
-      
-      const mainContent = document.getElementById('main-content');
-      mainContent.scrollTop = 0; // Scroll to top on tab change
 
-      const activeLink = document.querySelector(`.nav-item a[data-tab="${tabName}"]`);
-      if (activeLink) {
-        const icon = activeLink.querySelector('.nav-icon').textContent;
-        const name = activeLink.querySelector('span:last-child').textContent;
-        document.getElementById('page-icon').textContent = icon;
-        document.getElementById('page-name').textContent = name;
+      const mainContent = document.getElementById('main-content');
+      if (mainContent) {
+        mainContent.scrollTop = 0;
       }
-      
-      const sidebar = document.getElementById('sidebar');
-      if(sidebar.classList.contains('active')) {
-          toggleSidebar();
+
+      const activeControl = document.querySelector(`#nav-menu [data-tab="${tabName}"]`);
+      if (activeControl) {
+        const iconEl = activeControl.querySelector('.nav-icon');
+        const labelEl = activeControl.querySelector('span:not(.nav-icon):not(.nav-badge)');
+        const pageIcon = document.getElementById('page-icon');
+        const pageName = document.getElementById('page-name');
+        if (pageIcon && iconEl) pageIcon.textContent = iconEl.textContent;
+        if (pageName && labelEl) pageName.textContent = labelEl.textContent;
       }
 
       const renderFunc = `render${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
@@ -2496,23 +2510,16 @@
     }
 
     function setupEventListeners() {
-      document.getElementById('nav-menu').addEventListener('click', e => {
-        const link = e.target.closest('a');
-        if (link && link.dataset.tab) {
-          e.preventDefault();
-          switchTab(link.dataset.tab);
-        }
-      });
-      
-      document.getElementById('menu-toggle').addEventListener('click', toggleSidebar);
-      document.getElementById('app-overlay').addEventListener('click', toggleSidebar);
-    }
-    
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('app-overlay');
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
+      const navMenu = document.getElementById('nav-menu');
+      if (navMenu) {
+        navMenu.addEventListener('click', e => {
+          const control = e.target.closest('[data-tab]');
+          if (control && control.dataset.tab) {
+            e.preventDefault();
+            switchTab(control.dataset.tab);
+          }
+        });
+      }
     }
 
     // =================================================================
@@ -2531,11 +2538,11 @@
       
       const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
       const budgetPercent = project.budget > 0 ? (totalExpenses / project.budget * 100) : 0;
-      
-      const overdueTasks = tasks.filter(t => 
+
+      const overdueTasks = tasks.filter(t =>
         t.status !== 'completed' && t.endDate && new Date(t.endDate) < new Date()
       ).length;
-      
+
       const daysRemaining = project.endDate ? Math.max(0, Math.ceil(
         (new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24)
       )) : 'N/A';
@@ -2543,12 +2550,48 @@
       document.getElementById('total-progress').textContent = `${Math.round(totalProgress)}%`;
       document.getElementById('progress-bar').style.width = `${totalProgress}%`;
       document.getElementById('budget-used').textContent = formatCurrency(totalExpenses);
-      document.getElementById('budget-percent').textContent = 
+      document.getElementById('budget-percent').textContent =
         `${Math.round(budgetPercent)}% z ${formatCurrency(project.budget)}`;
       document.getElementById('overdue-tasks').textContent = overdueTasks;
       document.getElementById('days-remaining').textContent = daysRemaining;
-      document.getElementById('end-date-display').textContent = 
+      document.getElementById('end-date-display').textContent =
         project.endDate ? `Termin: ${formatDate(project.endDate)}` : 'Brak terminu';
+
+      const heroProgress = document.getElementById('hero-progress');
+      if (heroProgress) heroProgress.textContent = `${Math.round(totalProgress)}%`;
+      const heroProgressNote = document.getElementById('hero-progress-note');
+      if (heroProgressNote) {
+        heroProgressNote.textContent = tasks.length
+          ? `${tasks.length.toLocaleString('pl-PL')} aktywnych zadań`
+          : 'Brak zadań do śledzenia';
+      }
+      const heroBudget = document.getElementById('hero-budget');
+      if (heroBudget) heroBudget.textContent = formatCurrency(totalExpenses);
+      const heroBudgetNote = document.getElementById('hero-budget-note');
+      if (heroBudgetNote) {
+        heroBudgetNote.textContent = project.budget
+          ? `z planu ${formatCurrency(project.budget)}`
+          : 'Budżet nieustawiony';
+      }
+      const heroOverdue = document.getElementById('hero-overdue');
+      if (heroOverdue) heroOverdue.textContent = overdueTasks;
+      const heroOverdueNote = document.getElementById('hero-overdue-note');
+      if (heroOverdueNote) {
+        if (overdueTasks === 0) heroOverdueNote.textContent = 'Wszystko na czas';
+        else if (overdueTasks === 1) heroOverdueNote.textContent = 'zadanie wymaga uwagi';
+        else heroOverdueNote.textContent = 'zadań wymaga uwagi';
+      }
+      const heroTimeline = document.getElementById('hero-timeline');
+      if (heroTimeline) {
+        if (typeof daysRemaining === 'number') heroTimeline.textContent = `${daysRemaining} dni`;
+        else heroTimeline.textContent = '—';
+      }
+      const heroTimelineNote = document.getElementById('hero-timeline-note');
+      if (heroTimelineNote) {
+        heroTimelineNote.textContent = project.endDate
+          ? `Do ${formatDate(project.endDate)}`
+          : 'Brak planowanej daty zakończenia';
+      }
 
       const taskBadge = document.getElementById('tasks-badge');
       if (overdueTasks > 0) {
