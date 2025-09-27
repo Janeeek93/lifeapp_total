@@ -314,16 +314,17 @@
   </style>
 </head>
 <body class="module-shell">
-  <section class="module-hero">
-    <div class="wrap module-hero-inner">
-      <div class="module-hero-top">
-        <div>
+  <header class="module-header">
+    <div class="wrap">
+      <div class="module-header__bar">
+        <div class="module-header__identity">
           <a href="index.html" class="back-link">← Powrót</a>
-          <div class="module-eyebrow">Budżet</div>
-          <h1 class="module-title">Mój Budżet</h1>
-          <p class="module-subtitle">Wersja lokalna</p>
+          <div>
+            <p class="module-header__eyebrow">Budżet</p>
+            <h1 class="module-header__title">Mój Budżet</h1>
+          </div>
         </div>
-        <div class="module-hero-actions">
+        <div class="module-header__actions">
           <div class="toolbar budget-month-nav">
             <button class="btn soft" id="prevMonthBtn" title="Poprzedni miesiąc">←</button>
             <span class="pill" id="workingMonth">YYYY-MM</span>
@@ -336,30 +337,31 @@
           </div>
         </div>
       </div>
-      <div class="module-hero-stats">
-        <div class="module-hero-stat">
-          <div class="label">Zostało do wydania</div>
-          <div class="big-number" id="dash-remaining">0</div>
-          <div class="note muted">na wydatki zmienne</div>
+      <p class="module-header__subtitle">Wersja lokalna</p>
+      <div class="module-header__metrics">
+        <div class="metric-pill">
+          <span class="label">Zostało do wydania</span>
+          <span class="big-number" id="dash-remaining">0</span>
+          <span class="note">na wydatki zmienne</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Dzienny limit</div>
-          <div class="big-number" id="dash-daily-budget">0</div>
-          <div class="note" id="dash-daily-trend">—</div>
+        <div class="metric-pill">
+          <span class="label">Dzienny limit</span>
+          <span class="big-number" id="dash-daily-budget">0</span>
+          <span class="note" id="dash-daily-trend">—</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Wydano dzisiaj</div>
-          <div class="big-number" id="dash-today-spent">0</div>
-          <div class="note" id="dash-today-vs-budget">—</div>
+        <div class="metric-pill">
+          <span class="label">Wydano dzisiaj</span>
+          <span class="big-number" id="dash-today-spent">0</span>
+          <span class="note" id="dash-today-vs-budget">—</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Średnia dzienna</div>
-          <div class="big-number" id="dash-avg-daily">0</div>
-          <div class="note" id="dash-avg-trend">—</div>
+        <div class="metric-pill">
+          <span class="label">Średnia dzienna</span>
+          <span class="big-number" id="dash-avg-daily">0</span>
+          <span class="note" id="dash-avg-trend">—</span>
         </div>
       </div>
     </div>
-  </section>
+  </header>
 
   <main class="module-content">
     <div class="wrap">

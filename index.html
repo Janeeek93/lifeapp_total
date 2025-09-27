@@ -21,8 +21,6 @@
     .modules-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
     .card { animation: fadeInUp .4s ease-out; }
 
-    @keyframes slideInRight { from{opacity:0; transform:translateX(12px)} to{opacity:1; transform:translateX(0)} }
-
     @media(max-width:1200px){ .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     @media(max-width:900px){ .g-main{ grid-template-columns: 1fr; } }
 
@@ -61,27 +59,9 @@
     .value-warn { color: var(--orange); }
     .value-bad { color: var(--red); }
 
-    /* === Hero === */
-    .hero-header{
-      margin:-32px -20px 24px -20px; padding: 28px 20px; color: var(--ink); position:relative; overflow:hidden;
-      background: var(--gradient-primary);
-      border-bottom: 1px solid var(--line);
-    }
-    .hero-content{
-        position:relative; z-index:1; max-width:1280px; margin:0 auto;
-        width: 100%;
-    }
-    .greeting-text{ font-size: clamp(20px, 4vw, 28px); font-weight:800; margin:0 0 6px 0; animation: fadeInUp .5s ease-out }
-    .date-text{ opacity:.9; font-size: 13px; margin:0 0 10px 0; animation: fadeInUp .5s ease-out .1s both }
-    .dynamic-message{ font-style: italic; opacity:.85; font-size:12px; animation: fadeInUp .5s ease-out .2s both }
-
-    .quick-actions{ position:absolute; top:20px; right:20px; display:flex; gap:10px; animation: slideInRight .5s ease-out .2s both; }
-    .quick-action{
-      width:42px; height:42px; background: hsl(0 0% 100% / .6);
-      border:1px solid hsl(0 0% 100% / .7); border-radius:10px; display:flex; align-items:center; justify-content:center;
-      color:#111; text-decoration:none; font-size:16px; transition: transform .15s ease, background .2s ease; backdrop-filter: blur(8px);
-    }
-    .quick-action:hover{ transform: scale(1.07) }
+    .home-header .module-header__metrics { gap: 10px; }
+    .home-header .metric-pill { flex: 1 1 220px; }
+    .home-header .module-header__meta { font-style: italic; }
 
     /* === Lists & feeds === */
     .activity-feed{ max-height: 300px; overflow-y:auto; padding-right:6px }
@@ -160,19 +140,43 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="hero-header">
-      <div class="hero-content">
-        <div class="quick-actions">
-          <a href="#" class="quick-action" title="Ustawienia" onclick="openSettingsModal()">⚙️</a>
-          <a href="#" class="quick-action" title="Odśwież" onclick="refreshDashboard()">↻</a>
+  <header class="module-header home-header">
+    <div class="wrap">
+      <div class="module-header__bar">
+        <div class="module-header__identity">
+          <div>
+            <p class="module-header__eyebrow">LifeOS</p>
+            <h1 id="greeting" class="module-header__title">Dzień dobry!</h1>
+          </div>
         </div>
-        <h1 id="greeting" class="greeting-text">Dzień dobry!</h1>
-        <p id="current-date" class="date-text"></p>
-        <p id="dynamic-message" class="dynamic-message"></p>
+        <div class="module-header__actions">
+          <button class="header-icon-btn" type="button" title="Ustawienia" onclick="openSettingsModal()">⚙️</button>
+          <button class="header-icon-btn" type="button" title="Odśwież" onclick="refreshDashboard()">↻</button>
+        </div>
       </div>
-    </header>
+      <p id="current-date" class="module-header__subtitle"></p>
+      <div class="module-header__metrics">
+        <div class="metric-pill">
+          <span class="label">Priorytety</span>
+          <span class="value" id="header-priorities">—</span>
+          <span class="note" id="header-next-task">Brak zadań w kolejce</span>
+        </div>
+        <div class="metric-pill">
+          <span class="label">Cele tygodniowe</span>
+          <span class="value" id="header-goal-progress">0%</span>
+          <span class="note" id="header-goal-note">Brak danych</span>
+        </div>
+        <div class="metric-pill">
+          <span class="label">Saldo paliwowe</span>
+          <span class="value" id="header-fuel-balance">0,00 PLN</span>
+          <span class="note" id="header-fuel-note">Brak danych</span>
+        </div>
+      </div>
+      <p id="dynamic-message" class="module-header__meta"></p>
+    </div>
+  </header>
 
+  <div class="wrap">
     <div class="grid g-main">
       <div style="display: grid; gap: 14px; align-content: start;">
         <div class="card">
@@ -425,18 +429,42 @@ function renderUpcomingTasks(){
   const listEl = document.getElementById('upcoming-tasks-list');
   const tasksRaw = localStorage.getItem(TASKS_STORAGE_KEY);
   const tasksState = safeParse(tasksRaw, { tasks: [] });
+  const headerPriorities = document.getElementById('header-priorities');
+  const headerNextTask = document.getElementById('header-next-task');
   if(!tasksState || !Array.isArray(tasksState.tasks) || tasksState.tasks.length === 0){
     listEl.innerHTML = `<div class="tiny muted" style="padding: 14px;">Brak zadań.</div>`;
     document.getElementById('priorities-summary').textContent = 'Brak zadań';
+    if(headerPriorities) headerPriorities.textContent = 'Brak zadań';
+    if(headerNextTask) headerNextTask.textContent = 'Dodaj pierwsze zadanie na ten tydzień';
     return;
   }
   const today = new Date(); today.setUTCHours(0,0,0,0);
-  
+
   const overdue = tasksState.tasks.filter(t => t.status !== 'done' && t.dueDate && parseDate(t.dueDate) < today).sort((a,b) => parseDate(a.dueDate)-parseDate(b.dueDate));
   const todayTasks = tasksState.tasks.filter(t => t.status !== 'done' && t.dueDate && parseDate(t.dueDate).getTime() === today.getTime());
   const tomorrowTasks = tasksState.tasks.filter(t => t.status !== 'done' && t.dueDate && parseDate(t.dueDate).getTime() === new Date(today.getTime()+86400000).getTime());
-  
+
   document.getElementById('priorities-summary').textContent = `Zaległe: ${overdue.length} | Dziś: ${todayTasks.length}`;
+  if(headerPriorities) headerPriorities.textContent = `Zaległe: ${overdue.length} | Dziś: ${todayTasks.length}`;
+
+  const allActive = tasksState.tasks
+    .filter(t => t.status !== 'done' && t.dueDate)
+    .sort((a,b) => parseDate(a.dueDate) - parseDate(b.dueDate));
+  const nextTask = allActive[0];
+  if(headerNextTask){
+    if(nextTask){
+      const dueDate = parseDate(nextTask.dueDate);
+      const diffDays = Math.round((dueDate - today) / 86400000);
+      let dueText = '';
+      if (diffDays < 0) dueText = `${Math.abs(diffDays)} dni po terminie`;
+      else if (diffDays === 0) dueText = 'termin dzisiaj';
+      else if (diffDays === 1) dueText = 'termin jutro';
+      else dueText = `za ${diffDays} dni`;
+      headerNextTask.textContent = `${nextTask.title} • ${dueText}`;
+    } else {
+      headerNextTask.textContent = 'Nic pilnego na horyzoncie — utrzymuj tempo!';
+    }
+  }
   
   if(overdue.length === 0 && todayTasks.length === 0 && tomorrowTasks.length === 0){
     listEl.innerHTML = `<div style="text-align:center; padding: 26px 0; opacity: .9;"><div style="font-size: 36px; margin-bottom: 8px;">🎉</div><p class="tiny muted">Brak zadań priorytetowych!</p></div>`;
@@ -480,6 +508,8 @@ function renderWeeklyActivities(){
   const listEl = document.getElementById('weekly-activities-list');
   const summary = getTrainingSummary();
   const goalPercents = summary.goalPercents || {};
+  const headerGoal = document.getElementById('header-goal-progress');
+  const headerGoalNote = document.getElementById('header-goal-note');
   listEl.innerHTML = Object.entries(TRAINING_GOALS).map(([type, meta], index)=>{
     const info = goalPercents[type] || { progress: 0, percent: 0, target: meta.target };
     const current = formatGoalValue(type, info.progress || 0);
@@ -492,6 +522,16 @@ function renderWeeklyActivities(){
       </div>
     </div>`;
   }).join('');
+
+  if(headerGoal){
+    const avg = Math.round(Number(summary.average) || 0);
+    headerGoal.textContent = `${avg}%`;
+    if(headerGoalNote){
+      const completed = Object.entries(goalPercents).filter(([,info]) => Number(info.percent || 0) >= 100).length;
+      const total = Object.keys(TRAINING_GOALS).length;
+      headerGoalNote.textContent = total > 0 ? `${completed}/${total} celów osiągniętych` : 'Brak zdefiniowanych celów';
+    }
+  }
 }
 
 /* === WEATHER (From Settings) === */
@@ -654,6 +694,7 @@ function renderKPIData(){
     const balanceClass = balance >= 0 ? 'value-ok' : 'value-bad';
     const lastInvoice = fuelData.invoices[0];
     const detailLines = [];
+    let lastInvoiceNote = 'Brak faktur w historii';
     if(lastInvoice){
       const days = lastInvoice.date ? Math.floor((new Date() - new Date(lastInvoice.date))/86400000) : null;
       const amount = Math.abs(Number(lastInvoice.amount) || 0);
@@ -663,6 +704,7 @@ function renderKPIData(){
         const pricePerLiter = amount / liters;
         detailLines.push(`${liters.toFixed(1)} L @ ${fmt(pricePerLiter, 'PLN/L')}`);
       }
+      lastInvoiceNote = `${lastInvoice.date || 'brak daty'} • ${fmt(amount)}`;
     } else {
       detailLines.push('Brak zarejestrowanych tankowań.');
     }
@@ -682,12 +724,20 @@ function renderKPIData(){
     } else {
       detailLines.push(`${fuelData.invoices.length} faktur • ${fuelData.advances.length} zaliczek`);
     }
+    const headerFuelBalance = document.getElementById('header-fuel-balance');
+    const headerFuelNote = document.getElementById('header-fuel-note');
+    if(headerFuelBalance) headerFuelBalance.textContent = fmt(balance);
+    if(headerFuelNote) headerFuelNote.textContent = lastInvoiceNote;
     kpiElements.fuel.innerHTML = `
       <div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div>
       <div class="kpi-main-value ${balanceClass}">${fmt(balance, '')}<span class="tiny muted" style="margin-left: 4px;">PLN</span></div>
       <div class="kpi-details">${renderDetailLines(detailLines)}</div>`;
   } else {
     kpiElements.fuel.innerHTML = `<div class="kpi-header"><span>⛽</span><h4>Paliwo</h4></div><div class="kpi-details">${renderDetailLines(['Brak danych.'])}</div>`;
+    const headerFuelBalance = document.getElementById('header-fuel-balance');
+    const headerFuelNote = document.getElementById('header-fuel-note');
+    if(headerFuelBalance) headerFuelBalance.textContent = fmt(0);
+    if(headerFuelNote) headerFuelNote.textContent = 'Brak transakcji';
   }
 
   // --- Tasks KPI ---

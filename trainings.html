@@ -648,19 +648,20 @@
   </style>
 </head>
 <body class="module-shell">
-  <section class="module-hero">
-    <div class="wrap module-hero-inner">
-      <div class="module-hero-top">
-        <div class="module-title-group">
+  <header class="module-header">
+    <div class="wrap">
+      <div class="module-header__bar">
+        <div class="module-header__identity">
           <a href="./index.html" class="back-link">← Powrót</a>
-          <div class="module-eyebrow">Program treningowy</div>
-          <div class="module-title-row">
-            <h1 class="module-title">Panel treningów</h1>
-            <span class="chip" id="header-month-chip">--</span>
+          <div>
+            <p class="module-header__eyebrow">Program treningowy</p>
+            <div class="module-header__title-row">
+              <h1 class="module-header__title">Panel treningów</h1>
+              <span class="chip" id="header-month-chip">--</span>
+            </div>
           </div>
-          <p class="module-subtitle">Zarządzaj planem aktywności, dniami urlopu i monitoruj realizację celów.</p>
         </div>
-        <div class="module-hero-actions month-switcher">
+        <div class="module-header__actions month-switcher">
           <button id="prev-month-btn" class="btn ghost icon-btn" aria-label="Poprzedni miesiąc"><i data-lucide="chevron-left" class="icon"></i></button>
           <div class="month-labels">
             <span class="month-label" id="current-month-label">--</span>
@@ -670,25 +671,26 @@
           <button id="today-month-btn" class="btn soft"><i data-lucide="calendar" class="icon"></i>Dzisiaj</button>
         </div>
       </div>
-      <div class="module-hero-stats">
-        <div class="module-hero-stat">
-          <div class="label">Realizacja celów</div>
-          <div class="value" id="hero-goal-progress">0%</div>
-          <div class="note" id="hero-goal-progress-note">Cele tygodniowe — --</div>
+      <p class="module-header__subtitle">Zarządzaj planem aktywności, dniami urlopu i monitoruj realizację celów.</p>
+      <div class="module-header__metrics">
+        <div class="metric-pill">
+          <span class="label">Realizacja celów</span>
+          <span class="value" id="hero-goal-progress">0%</span>
+          <span class="note" id="hero-goal-progress-note">Cele tygodniowe — --</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Zaliczone tygodnie</div>
-          <div class="value" id="hero-weekly-complete-count">0/0</div>
-          <div class="note" id="hero-weekly-complete-note">0%</div>
+        <div class="metric-pill">
+          <span class="label">Zaliczone tygodnie</span>
+          <span class="value" id="hero-weekly-complete-count">0/0</span>
+          <span class="note" id="hero-weekly-complete-note">0%</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Aktywne dni</div>
-          <div class="value" id="hero-active-days">0/0</div>
-          <div class="note" id="hero-active-days-note">W tym miesiącu</div>
+        <div class="metric-pill">
+          <span class="label">Aktywne dni</span>
+          <span class="value" id="hero-active-days">0/0</span>
+          <span class="note" id="hero-active-days-note">W tym miesiącu</span>
         </div>
       </div>
     </div>
-  </section>
+  </header>
 
   <main class="module-content">
     <div class="wrap page-content">

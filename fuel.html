@@ -77,34 +77,36 @@
   </style>
 </head>
 <body class="module-shell">
-  <section class="module-hero">
-    <div class="wrap module-hero-inner">
-      <div class="module-hero-top">
-        <div>
+  <header class="module-header">
+    <div class="wrap">
+      <div class="module-header__bar">
+        <div class="module-header__identity">
           <a href="index.html" class="back-link">← Powrót</a>
-          <div class="module-eyebrow">Finanse</div>
-          <h1 class="module-title">Moduł paliwowy</h1>
-          <p class="module-subtitle">Rozliczaj wydatki służbowe i prywatne tankowania w jednym miejscu.</p>
+          <div>
+            <p class="module-header__eyebrow">Finanse</p>
+            <h1 class="module-header__title">Moduł paliwowy</h1>
+          </div>
         </div>
-        <div class="module-hero-actions">
+        <div class="module-header__actions">
           <button id="import-csv-btn" class="btn soft">Importuj z CSV</button>
           <input type="file" id="csv-file-input" accept=".csv" style="display:none;">
           <button id="export-csv-btn" class="btn soft">Eksportuj do CSV</button>
           <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
         </div>
       </div>
-      <div class="module-hero-stats">
-        <div class="module-hero-stat">
-          <div class="label">Aktualne saldo</div>
-          <div class="value ok" id="fuel-balance">0,00 PLN</div>
-          <div class="note muted" id="balance-info">—</div>
+      <p class="module-header__subtitle">Rozliczaj wydatki służbowe i prywatne tankowania w jednym miejscu.</p>
+      <div class="module-header__metrics">
+        <div class="metric-pill">
+          <span class="label">Aktualne saldo</span>
+          <span class="value ok" id="fuel-balance">0,00 PLN</span>
+          <span class="note" id="balance-info">—</span>
         </div>
-        <div class="module-hero-stat" id="last-invoice-card">
-          <div class="muted">Brak faktur w historii</div>
+        <div class="metric-pill" id="last-invoice-card">
+          <span class="label">Brak faktur w historii</span>
         </div>
       </div>
     </div>
-  </section>
+  </header>
 
   <main class="module-content">
     <div class="wrap">

@@ -33,7 +33,6 @@
     
     @keyframes fadeInUp { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
 
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px; }
     .grid { display: grid; gap: 24px; }
     .g-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .g-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -58,18 +57,6 @@
     .btn:hover{ transform: translateY(-1px); box-shadow: var(--shadow-sm); border-color:hsl(var(--accent-h) 30% 75% / .6) }
     .btn.primary{ background: var(--accent); color:#fff; border-color: transparent }
     .btn.danger{ background: var(--red); color:#fff; border-color: transparent }
-
-    .header {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        gap: 16px;
-        animation: fadeInUp .3s ease-out;
-    }
-    .header-title { font-size: 28px; font-weight: 800; margin: 0; }
-    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .kpi-card {
         display: flex;
@@ -150,22 +137,47 @@
     .setup-icon { font-size: 48px; margin-bottom: 16px; }
   </style>
 </head>
-<body>
+<body class="module-shell">
 
-  <div class="wrap">
-    <header class="page-header">
-      <div class="page-title-group">
-        <a href="index.html" class="back-link">← Powrót</a>
-        <h1 class="page-title">Monitor kredytu</h1>
-        <p class="page-subtitle">Śledź saldo, nadpłaty i harmonogram spłat w jednym miejscu.</p>
+  <header class="module-header">
+    <div class="wrap">
+      <div class="module-header__bar">
+        <div class="module-header__identity">
+          <a href="index.html" class="back-link">← Powrót</a>
+          <div>
+            <p class="module-header__eyebrow">Finanse</p>
+            <h1 class="module-header__title">Monitor kredytu</h1>
+          </div>
+        </div>
+        <div class="module-header__actions">
+          <button class="btn primary" id="add-payment-btn" style="display: none;">+ Dodaj spłatę</button>
+          <button class="btn" id="settings-btn" style="display: none;">⚙️ Ustawienia</button>
+        </div>
       </div>
-      <div class="page-actions">
-        <button class="btn primary" id="add-payment-btn" style="display: none;">+ Dodaj spłatę</button>
-        <button class="btn" id="settings-btn" style="display: none;">⚙️ Ustawienia</button>
+      <p class="module-header__subtitle">Śledź saldo, nadpłaty i harmonogram spłat w jednym miejscu.</p>
+      <div class="module-header__metrics" id="loan-header-metrics">
+        <div class="metric-pill">
+          <span class="label">Pozostało kapitału</span>
+          <span class="value" id="header-capital-remaining">0 PLN</span>
+          <span class="note" id="header-capital-note">Brak danych</span>
+        </div>
+        <div class="metric-pill">
+          <span class="label">Postęp spłaty</span>
+          <span class="value" id="header-progress">0%</span>
+          <span class="note" id="header-progress-note">—</span>
+        </div>
+        <div class="metric-pill">
+          <span class="label">Suma nadpłat</span>
+          <span class="value" id="header-overpayments">0 PLN</span>
+          <span class="note" id="header-next-installment">Najbliższa rata: —</span>
+        </div>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main id="app-container">
+  <main class="module-content">
+    <div class="wrap">
+    <div id="app-container">
       
       <div id="setup-container" class="card setup-container" style="display: none;">
         <div class="setup-icon">📊</div>
@@ -258,9 +270,10 @@
 
       </div>
 
-    </main>
-  </div>
-  
+    </div>
+    </div>
+  </main>
+
   <div id="modal-overlay" class="modal-overlay" role="dialog">
     <div class="modal-card" id="modal-card">
       <div class="modal-header">
@@ -498,6 +511,11 @@ function renderDashboard() {
     $('#interest-paid').innerHTML = `${fmt(totalInterestPaid)}<span class="currency">PLN</span>`;
     $('#payments-count').innerHTML = `${payments.length}<span class="currency">z ${loanDetails.loanTerm * 12}</span>`;
 
+    const headerCapitalEl = $('#header-capital-remaining');
+    if (headerCapitalEl) headerCapitalEl.textContent = fmt(capitalRemaining);
+    const headerOverpaymentsEl = $('#header-overpayments');
+    if (headerOverpaymentsEl) headerOverpaymentsEl.textContent = fmt(totalOverpayments);
+
     const originalMonths = loanDetails.loanTerm * 12;
     const monthsPaid = payments.length;
     const avgMonthlyPrincipal = monthsPaid > 0 ? payments.reduce((s, p) => s + p.capital, 0) / monthsPaid : 0;
@@ -516,12 +534,27 @@ function renderDashboard() {
     const projectedEndDate = new Date();
     projectedEndDate.setMonth(projectedEndDate.getMonth() + projectedMonthsRemaining);
     $('#payments-sub').textContent = `Nowy przewidywany koniec: ${projectedEndDate.toLocaleDateString('pl-PL', {year: 'numeric', month: 'long'})}`;
+    const headerCapitalNote = $('#header-capital-note');
+    if (headerCapitalNote) headerCapitalNote.textContent = `Koniec ok. ${projectedEndDate.toLocaleDateString('pl-PL', { year: 'numeric', month: 'long' })}`;
 
     $('#progress-bar-inner').style.width = `${progress}%`;
     $('#progress-percent').textContent = `${progress.toFixed(2)}%`;
     $('#progress-text').textContent = `${fmt(totalCapitalPaid)} / ${fmt(loanDetails.totalCapital)}`;
+    const headerProgressEl = $('#header-progress');
+    if (headerProgressEl) headerProgressEl.textContent = `${progress.toFixed(1)}%`;
+    const headerProgressNote = $('#header-progress-note');
+    if (headerProgressNote) headerProgressNote.textContent = `${fmt(totalCapitalPaid)} / ${fmt(loanDetails.totalCapital)}`;
 
     const nextPaymentMonth = getNextPaymentMonth(payments, loanDetails);
+    const headerNextInstallment = $('#header-next-installment');
+    if (headerNextInstallment) {
+        if (nextPaymentMonth) {
+            const nextLabel = new Date(`${nextPaymentMonth}-01`).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+            headerNextInstallment.textContent = `Najbliższa rata: ${nextLabel}`;
+        } else {
+            headerNextInstallment.textContent = 'Najbliższa rata: —';
+        }
+    }
     updateLoanInsights({
         loanDetails,
         payments,

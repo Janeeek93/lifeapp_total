@@ -32,7 +32,6 @@
     .task-exit { animation: fadeOut 0.3s ease-in forwards; }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--ink);font-family: 'Inter', system-ui,-apple-system,Segoe UI,Roboto; font-size: 12px; line-height: 1.5;}
-    .wrap{max-width:1200px;margin:0 auto;padding:32px 24px}
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow: var(--shadow); transition: all .3s ease;}
     .row{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
     .muted{color:var(--muted)}
@@ -174,19 +173,44 @@
 
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <header class="page-header">
-      <div class="page-title-group">
-        <a href="./index.html" class="back-link">← Powrót</a>
-        <h1 class="page-title">Zadania Pro</h1>
-        <p class="page-subtitle">Zarządzaj wszystkimi obowiązkami w jednym miejscu i miej kontrolę nad priorytetami.</p>
+<body class="module-shell">
+  <header class="module-header">
+    <div class="wrap">
+      <div class="module-header__bar">
+        <div class="module-header__identity">
+          <a href="./index.html" class="back-link">← Powrót</a>
+          <div>
+            <p class="module-header__eyebrow">Organizacja</p>
+            <h1 class="module-header__title">Zadania Pro</h1>
+          </div>
+        </div>
+        <div class="module-header__actions">
+          <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
+        </div>
       </div>
-      <div class="page-actions">
-        <button id="clear-all-btn" class="btn danger">Wyczyść wszystko</button>
+      <p class="module-header__subtitle">Zarządzaj wszystkimi obowiązkami w jednym miejscu i miej kontrolę nad priorytetami.</p>
+      <div class="module-header__metrics">
+        <div class="metric-pill">
+          <span class="label">Aktywne</span>
+          <span class="value" id="tasks-active-count">0</span>
+          <span class="note" id="tasks-active-note">Brak zadań w kolejce</span>
+        </div>
+        <div class="metric-pill">
+          <span class="label">Na dziś</span>
+          <span class="value" id="tasks-today-count">0</span>
+          <span class="note" id="tasks-today-note">Spokojny dzień</span>
+        </div>
+        <div class="metric-pill">
+          <span class="label">Postęp tygodniowy</span>
+          <span class="value" id="tasks-week-progress">0%</span>
+          <span class="note" id="tasks-week-note">0/0 ukończonych</span>
+        </div>
       </div>
-    </header>
+    </div>
+  </header>
 
+  <main class="module-content">
+    <div class="wrap">
     <section class="card insights-card" aria-live="polite">
       <div class="insights-header">
         <div>
@@ -321,6 +345,7 @@
         </div>
     </div>
   </div>
+  </main>
 
 <div id="modal-overlay" class="modal-overlay" style="display: none;">
   <div class="modal-card"><p id="modal-text"></p><div id="modal-actions" class="modal-actions"></div></div>
@@ -424,6 +449,80 @@ function render() {
     const activeTab = activeTabEl ? activeTabEl.dataset.tab : 'list';
     if (activeTab === 'calendar') renderCalendar();
     if (activeTab === 'stats') renderStats();
+    updateHeaderSummary();
+}
+
+function updateHeaderSummary() {
+    const activeTasks = state.tasks.filter(task => task.status !== 'done');
+    const headerActiveCount = document.getElementById('tasks-active-count');
+    const headerActiveNote = document.getElementById('tasks-active-note');
+    const headerTodayCount = document.getElementById('tasks-today-count');
+    const headerTodayNote = document.getElementById('tasks-today-note');
+    const headerWeekProgress = document.getElementById('tasks-week-progress');
+    const headerWeekNote = document.getElementById('tasks-week-note');
+
+    if (!headerActiveCount || !headerTodayCount || !headerWeekProgress) return;
+
+    headerActiveCount.textContent = activeTasks.length;
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    const overdue = activeTasks.filter(task => {
+        const due = parseDate(task.dueDate);
+        return due && due < today;
+    });
+    const todayTasks = activeTasks.filter(task => {
+        const due = parseDate(task.dueDate);
+        return due && due.getTime() === today.getTime();
+    });
+    const upcoming = activeTasks
+        .filter(task => task.dueDate)
+        .sort((a, b) => parseDate(a.dueDate) - parseDate(b.dueDate));
+
+    if (headerActiveNote) {
+        if (overdue.length) {
+            headerActiveNote.textContent = `Zaległe: ${overdue.length}`;
+        } else if (upcoming.length) {
+            const nextDue = parseDate(upcoming[0].dueDate);
+            headerActiveNote.textContent = nextDue ? `Najbliższy termin: ${formatDateShort(nextDue)}` : 'Brak zaplanowanych terminów';
+        } else {
+            headerActiveNote.textContent = 'Brak zaplanowanych terminów';
+        }
+    }
+
+    headerTodayCount.textContent = todayTasks.length;
+    if (headerTodayNote) {
+        if (todayTasks.length) {
+            headerTodayNote.textContent = `${todayTasks.length} ${pluralize(todayTasks.length, ['zadanie', 'zadania', 'zadań'])} na dziś`;
+        } else if (upcoming.length) {
+            const nextDue = parseDate(upcoming[0].dueDate);
+            headerTodayNote.textContent = nextDue ? `Następne: ${describeRelativeDate(nextDue, today)}` : 'Dodaj nowe zadania';
+        } else {
+            headerTodayNote.textContent = 'Dodaj nowe zadania';
+        }
+    }
+
+    const startOfWeek = new Date(today);
+    const day = startOfWeek.getDay() || 7;
+    startOfWeek.setDate(startOfWeek.getDate() - (day - 1));
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setUTCHours(23, 59, 59, 999);
+
+    const weekPlanned = state.tasks.filter(task => {
+        const due = parseDate(task.dueDate);
+        return due && due >= startOfWeek && due <= endOfWeek;
+    });
+    const weekCompleted = weekPlanned.filter(task => task.status === 'done');
+    const progress = weekPlanned.length ? Math.round((weekCompleted.length / weekPlanned.length) * 100) : 0;
+
+    headerWeekProgress.textContent = `${progress}%`;
+    if (headerWeekNote) {
+        headerWeekNote.textContent = weekPlanned.length
+            ? `${weekCompleted.length}/${weekPlanned.length} ukończonych`
+            : 'Brak zadań na ten tydzień';
+    }
 }
 
 function formatDateShort(date) {

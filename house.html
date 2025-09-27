@@ -1941,16 +1941,17 @@
   </style>
 </head>
 <body class="module-shell">
-  <section class="module-hero">
-    <div class="wrap module-hero-inner">
-      <div class="module-hero-top">
-        <div>
+  <header class="module-header">
+    <div class="wrap">
+      <div class="module-header__bar">
+        <div class="module-header__identity">
           <a href="index.html" class="back-link">← Powrót</a>
-          <div class="module-eyebrow">Dom i budowa</div>
-          <h1 class="module-title">BuildMaster Pro</h1>
-          <p class="module-subtitle">Monitoruj postęp projektu domu, kontroluj budżet i reaguj na zagrożenia w jednym miejscu.</p>
+          <div>
+            <p class="module-header__eyebrow">Dom i budowa</p>
+            <h1 class="module-header__title">BuildMaster Pro</h1>
+          </div>
         </div>
-        <div class="module-hero-actions house-hero-actions">
+        <div class="module-header__actions house-hero-actions">
           <button class="btn soft" type="button" onclick="exportData()">📥 Eksport</button>
           <button class="btn soft" type="button" onclick="importData()">📤 Import</button>
           <button class="btn soft" type="button" onclick="generateReport()">📋 Raport</button>
@@ -1958,30 +1959,31 @@
           <button class="btn ghost icon-btn" id="theme-toggle" type="button" onclick="toggleTheme()">🌙</button>
         </div>
       </div>
-      <div class="module-hero-stats">
-        <div class="module-hero-stat">
-          <div class="label">Postęp projektu</div>
-          <div class="value" id="hero-progress">0%</div>
-          <div class="note" id="hero-progress-note">Średnia ukończenia zadań</div>
+      <p class="module-header__subtitle">Monitoruj postęp projektu domu, kontroluj budżet i reaguj na zagrożenia w jednym miejscu.</p>
+      <div class="module-header__metrics">
+        <div class="metric-pill">
+          <span class="label">Postęp projektu</span>
+          <span class="value" id="hero-progress">0%</span>
+          <span class="note" id="hero-progress-note">Średnia ukończenia zadań</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Wydatki</div>
-          <div class="value" id="hero-budget">0 zł</div>
-          <div class="note" id="hero-budget-note">z planowanego budżetu</div>
+        <div class="metric-pill">
+          <span class="label">Wydatki</span>
+          <span class="value" id="hero-budget">0 zł</span>
+          <span class="note" id="hero-budget-note">z planowanego budżetu</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Opóźnienia</div>
-          <div class="value" id="hero-overdue">0</div>
-          <div class="note" id="hero-overdue-note">Zadań po terminie</div>
+        <div class="metric-pill">
+          <span class="label">Opóźnienia</span>
+          <span class="value" id="hero-overdue">0</span>
+          <span class="note" id="hero-overdue-note">Zadań po terminie</span>
         </div>
-        <div class="module-hero-stat">
-          <div class="label">Do terminu</div>
-          <div class="value" id="hero-timeline">—</div>
-          <div class="note" id="hero-timeline-note">Brak planowanej daty zakończenia</div>
+        <div class="metric-pill">
+          <span class="label">Do terminu</span>
+          <span class="value" id="hero-timeline">—</span>
+          <span class="note" id="hero-timeline-note">Brak planowanej daty zakończenia</span>
         </div>
       </div>
     </div>
-  </section>
+  </header>
 
   <main class="module-content">
     <div class="wrap">
