@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
@@ -79,7 +80,25 @@
     .kpi-value { font-size: 28px; font-weight: 700; line-height: 1.2; }
     .kpi-value .currency { font-size: 16px; font-weight: 600; color: var(--muted); margin-left: 4px; }
     .kpi-sub { font-size: 12px; color: var(--muted); }
-    
+
+    .insights-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .insight-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .insight-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .insight-card .value { font-size: 22px; font-weight: 700; }
+    .insight-card .note { font-size: 12px; color: var(--muted); }
+
     .progress-bar { background: #e2e8f0; border-radius: 8px; height: 16px; overflow: hidden; }
     .progress-bar-inner {
       height: 100%;
@@ -94,6 +113,12 @@
     td { vertical-align: middle; }
     th { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; }
     tbody tr:hover { background-color: var(--surface); }
+
+    .rate-history-list { display: flex; flex-direction: column; gap: 10px; }
+    .rate-history-entry { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+    .rate-history-entry.current { border-color: var(--accent); background: var(--accent-weak); }
+    .rate-history-entry .rate { font-weight: 700; font-size: 16px; }
+    .rate-history-entry .date { font-size: 12px; color: var(--muted); }
 
     .modal-overlay{
       position:fixed; inset:0; background: rgba(15,23,42,.6); display:flex; justify-content:center; align-items:flex-start;
@@ -124,21 +149,48 @@
     }
     .setup-icon { font-size: 48px; margin-bottom: 16px; }
   </style>
-</head>
-<body>
-
-  <div class="wrap">
-    <header class="header">
-      <h1 class="header-title">🏦 Monitor Kredytu</h1>
-      <div class="header-actions">
-        <a href="index.html" class="btn">❮ Powrót</a>
-        <button class="btn primary" id="add-payment-btn" style="display: none;">+ Dodaj spłatę</button>
-        <button class="btn" id="settings-btn" style="display: none;">⚙️ Ustawienia</button>
+ </head>
+<body class="module-shell">
+  <section class="module-hero">
+    <div class="wrap module-hero-inner">
+      <div class="module-hero-top">
+        <div class="module-hero-meta">
+          <a href="index.html" class="back-link">← Powrót</a>
+          <div>
+            <div class="module-eyebrow">Finanse</div>
+            <h1 class="module-title">Monitor kredytu</h1>
+            <p class="module-subtitle">Śledź saldo, nadpłaty i harmonogram spłat w jednym miejscu.</p>
+          </div>
+        </div>
+        <div class="module-hero-actions">
+          <button class="btn primary" id="add-payment-btn" style="display: none;">+ Dodaj spłatę</button>
+          <button class="btn soft" id="settings-btn" style="display: none;">⚙️ Ustawienia</button>
+        </div>
       </div>
-    </header>
+      <div class="module-hero-stats">
+        <div class="module-hero-stat">
+          <div class="label">Pozostało kapitału</div>
+          <div class="value" id="hero-capital-remaining">—</div>
+          <div class="note muted" id="hero-capital-note">Dodaj ratę, aby obliczyć</div>
+        </div>
+        <div class="module-hero-stat">
+          <div class="label">Nadpłaty</div>
+          <div class="value" id="hero-overpayments">—</div>
+          <div class="note muted" id="hero-overpayments-note">Brak danych</div>
+        </div>
+        <div class="module-hero-stat">
+          <div class="label">Następny okres</div>
+          <div class="value" id="hero-next-payment">—</div>
+          <div class="note muted" id="hero-next-payment-note">Dodaj raty, aby prognozować</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <main id="app-container">
-      
+  <main class="module-content">
+    <div class="wrap">
+      <div id="app-container">
+
       <div id="setup-container" class="card setup-container" style="display: none;">
         <div class="setup-icon">📊</div>
         <h2 class="title">Witaj w module kredytowym!</h2>
@@ -171,9 +223,14 @@
             <div id="payments-sub" class="kpi-sub"></div>
           </div>
            <div class="card kpi-card">
-            <div class="kpi-label">Kredyt skrócony o</div>
-            <div id="time-saved" class="kpi-value"></div>
+           <div class="kpi-label">Kredyt skrócony o</div>
+           <div id="time-saved" class="kpi-value"></div>
           </div>
+        </div>
+
+        <div class="card" id="loan-insights-card" style="display:none;">
+            <h3 class="title">Najbliższe kroki</h3>
+            <div id="loan-insights-grid" class="insights-grid"></div>
         </div>
 
         <div class="card">
@@ -197,7 +254,12 @@
                 <canvas id="structure-chart" style="max-height: 300px;"></canvas>
             </div>
         </div>
-        
+
+        <div class="card" id="rate-history-card">
+            <h3 class="title">Historia oprocentowania</h3>
+            <ul id="rate-history-list" class="rate-history-list list-clean"></ul>
+        </div>
+
         <div class="card">
             <h3 class="title">Historia spłat</h3>
             <div class="table-wrapper">
@@ -220,8 +282,9 @@
 
       </div>
 
-    </main>
-  </div>
+      </div>
+    </div>
+  </main>
   
   <div id="modal-overlay" class="modal-overlay" role="dialog">
     <div class="modal-card" id="modal-card">
@@ -459,10 +522,11 @@ function renderDashboard() {
     $('#overpayments-total').innerHTML = `${fmt(totalOverpayments)}<span class="currency">PLN</span>`;
     $('#interest-paid').innerHTML = `${fmt(totalInterestPaid)}<span class="currency">PLN</span>`;
     $('#payments-count').innerHTML = `${payments.length}<span class="currency">z ${loanDetails.loanTerm * 12}</span>`;
-    
+
     const originalMonths = loanDetails.loanTerm * 12;
     const monthsPaid = payments.length;
     const avgMonthlyPrincipal = monthsPaid > 0 ? payments.reduce((s, p) => s + p.capital, 0) / monthsPaid : 0;
+    const avgInstallment = monthsPaid > 0 ? payments.reduce((s, p) => s + p.capital + p.interest + (p.overpayment || 0), 0) / monthsPaid : 0;
     const projectedMonthsRemaining = avgMonthlyPrincipal > 0 ? capitalRemaining / avgMonthlyPrincipal : Infinity;
     const monthsSaved = originalMonths - monthsPaid - projectedMonthsRemaining;
 
@@ -477,10 +541,60 @@ function renderDashboard() {
     const projectedEndDate = new Date();
     projectedEndDate.setMonth(projectedEndDate.getMonth() + projectedMonthsRemaining);
     $('#payments-sub').textContent = `Nowy przewidywany koniec: ${projectedEndDate.toLocaleDateString('pl-PL', {year: 'numeric', month: 'long'})}`;
-    
+
     $('#progress-bar-inner').style.width = `${progress}%`;
     $('#progress-percent').textContent = `${progress.toFixed(2)}%`;
     $('#progress-text').textContent = `${fmt(totalCapitalPaid)} / ${fmt(loanDetails.totalCapital)}`;
+
+    const heroCapital = $('#hero-capital-remaining');
+    const heroCapitalNote = $('#hero-capital-note');
+    if (heroCapital) {
+        heroCapital.textContent = fmt(Math.max(capitalRemaining, 0));
+    }
+    if (heroCapitalNote) {
+        heroCapitalNote.textContent = progress
+            ? `Spłacono ${Math.min(progress, 100).toFixed(1)}% kapitału`
+            : 'Dodaj ratę, aby obliczyć';
+    }
+
+    const heroOverpayments = $('#hero-overpayments');
+    const heroOverpaymentsNote = $('#hero-overpayments-note');
+    if (heroOverpayments) {
+        heroOverpayments.textContent = fmt(totalOverpayments);
+    }
+    if (heroOverpaymentsNote) {
+        heroOverpaymentsNote.textContent = totalOverpayments > 0
+            ? `Nadpłaty z ${payments.length} rat`
+            : 'Brak nadpłat';
+    }
+
+    const nextPaymentMonth = getNextPaymentMonth(payments, loanDetails);
+    const nextLabel = nextPaymentMonth
+        ? new Date(`${nextPaymentMonth}-01`).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })
+        : '—';
+    const heroNextPayment = $('#hero-next-payment');
+    const heroNextNote = $('#hero-next-payment-note');
+    if (heroNextPayment) {
+        heroNextPayment.textContent = nextLabel;
+    }
+    if (heroNextNote) {
+        heroNextNote.textContent = monthsPaid > 0
+            ? `Średnia rata ${fmt(avgInstallment)}`
+            : 'Dodaj raty, aby prognozować';
+    }
+
+    updateLoanInsights({
+        loanDetails,
+        payments,
+        capitalRemaining,
+        totalCapitalPaid,
+        totalOverpayments,
+        avgMonthlyPrincipal,
+        avgInstallment,
+        projectedMonthsRemaining,
+        nextPaymentMonth
+    });
+    renderRateHistory(loanDetails, nextPaymentMonth);
 }
 
 function renderHistoryTable() {
@@ -536,6 +650,114 @@ function getRateForDate(paymentDate, history) {
         }
     }
     return currentRate;
+}
+
+function getNextPaymentMonth(payments, loanDetails) {
+    const sorted = [...payments].filter(p => p.date).sort((a, b) => a.date.localeCompare(b.date));
+    if (sorted.length) {
+        const [year, month] = sorted[sorted.length - 1].date.split('-').map(Number);
+        const next = new Date(Date.UTC(year, month - 1, 1));
+        next.setUTCMonth(next.getUTCMonth() + 1);
+        return `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}`;
+    }
+    if (loanDetails?.startDate) {
+        return loanDetails.startDate.slice(0, 7);
+    }
+    const history = loanDetails?.interestRateHistory || [];
+    if (history.length) {
+        return history[0].date;
+    }
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function updateLoanInsights(metrics) {
+    const card = $('#loan-insights-card');
+    const grid = $('#loan-insights-grid');
+    if (!card || !grid) return;
+
+    if (!metrics || !metrics.loanDetails) {
+        card.style.display = 'none';
+        return;
+    }
+
+    card.style.display = 'block';
+    const { loanDetails, payments, capitalRemaining, totalCapitalPaid, totalOverpayments, avgMonthlyPrincipal, avgInstallment, projectedMonthsRemaining, nextPaymentMonth } = metrics;
+    const paymentsList = payments || [];
+    const avgInterestPortion = paymentsList.length ? paymentsList.reduce((sum, p) => sum + p.interest, 0) / paymentsList.length : 0;
+    const nextRate = getRateForDate(nextPaymentMonth, loanDetails.interestRateHistory || []);
+    const nextLabel = new Date(`${nextPaymentMonth}-01`).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+
+    const recommendedOverpayment = (avgMonthlyPrincipal > 0 && projectedMonthsRemaining && isFinite(projectedMonthsRemaining) && projectedMonthsRemaining > 6)
+        ? Math.max(0, (capitalRemaining / Math.max(projectedMonthsRemaining - 6, 1)) - avgMonthlyPrincipal)
+        : 0;
+
+    const finishDate = new Date();
+    if (projectedMonthsRemaining && isFinite(projectedMonthsRemaining)) {
+        finishDate.setMonth(finishDate.getMonth() + Math.max(0, Math.round(projectedMonthsRemaining)));
+    }
+    const finishLabel = projectedMonthsRemaining && isFinite(projectedMonthsRemaining)
+        ? finishDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })
+        : '—';
+
+    const cards = [
+        {
+            label: 'Następna rata',
+            value: nextLabel,
+            note: `Oprocentowanie ${nextRate ? Number(nextRate).toFixed(2) : '0.00'}%`
+        },
+        {
+            label: 'Prognozowany koniec',
+            value: finishLabel,
+            note: projectedMonthsRemaining && isFinite(projectedMonthsRemaining)
+                ? `${Math.round(projectedMonthsRemaining)} mies. do spłaty`
+                : 'Dodaj więcej rat, aby obliczyć prognozę'
+        },
+        {
+            label: 'Średnia rata',
+            value: paymentsList.length ? fmt(avgInstallment) : '—',
+            note: paymentsList.length ? `Kapitał ${fmt(avgMonthlyPrincipal)} • Odsetki ${fmt(avgInterestPortion)}` : 'Brak danych o ratach'
+        },
+        {
+            label: 'Nadpłaty',
+            value: fmt(totalOverpayments),
+            note: recommendedOverpayment > 0 ? `Dodatkowe ${fmt(recommendedOverpayment)} skróci spłatę o ~6 mies.` : 'Nadpłaty przyspieszą zakończenie kredytu'
+        }
+    ];
+
+    grid.innerHTML = cards.map(card => `
+        <div class="insight-card">
+            <div class="label">${card.label}</div>
+            <div class="value">${card.value}</div>
+            <div class="note">${card.note}</div>
+        </div>
+    `).join('');
+}
+
+function renderRateHistory(loanDetails, nextPaymentMonth) {
+    const list = $('#rate-history-list');
+    if (!list) return;
+    const history = loanDetails?.interestRateHistory || [];
+    if (!history.length) {
+        list.innerHTML = '<li class="muted" style="padding: 8px 0;">Brak historii zmian oprocentowania.</li>';
+        return;
+    }
+
+    const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date));
+    const currentEntry = sorted.reduce((acc, entry) => entry.date <= nextPaymentMonth ? entry : acc, sorted[0]);
+
+    list.innerHTML = sorted.map(entry => {
+        const dateLabel = new Date(`${entry.date}-01`).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
+        const rateValue = Number(entry.rate || 0).toFixed(2);
+        const isCurrent = currentEntry && entry.date === currentEntry.date;
+        const badge = isCurrent ? '<span class="tiny" style="margin-left:8px; color:var(--accent); font-weight:600;">obecna</span>' : '';
+        return `
+            <li class="rate-history-entry${isCurrent ? ' current' : ''}">
+                <span class="date">${dateLabel}${badge}</span>
+                <span class="rate">${rateValue}%</span>
+            </li>
+        `;
+    }).join('');
 }
 
 function renderCharts() {
